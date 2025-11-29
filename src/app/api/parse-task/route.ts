@@ -1,25 +1,229 @@
 import { NextRequest } from 'next/server';
 
-// This is a placeholder for the NLP processing API endpoint
-// In a real implementation, you would integrate with OpenAI or Gemini APIs here
+// Natural Language Processing for task parsing
+// Parses Portuguese natural language to extract structured task data
+
+interface ParsedTask {
+  title: string;
+  description: string;
+  dueDate: string | null;
+  priority: 'high' | 'medium' | 'low';
+  estimatedTime: number | null;
+}
+
+function extractPriority(text: string): 'high' | 'medium' | 'low' {
+  const lowerText = text.toLowerCase();
+  
+  // High priority keywords
+  const highPriorityKeywords = [
+    'urgente', 'urgência', 'importante', 'crítico', 'crítica',
+    'prioridade alta', 'alta prioridade', 'asap', 'imediato',
+    'imediatamente', 'hoje', 'agora', '!!'
+  ];
+  
+  // Low priority keywords
+  const lowPriorityKeywords = [
+    'baixa prioridade', 'prioridade baixa', 'quando possível',
+    'quando puder', 'sem pressa', 'eventualmente', 'opcional'
+  ];
+  
+  for (const keyword of highPriorityKeywords) {
+    if (lowerText.includes(keyword)) {
+      return 'high';
+    }
+  }
+  
+  for (const keyword of lowPriorityKeywords) {
+    if (lowerText.includes(keyword)) {
+      return 'low';
+    }
+  }
+  
+  return 'medium';
+}
+
+function extractDate(text: string): string | null {
+  const lowerText = text.toLowerCase();
+  const now = new Date();
+  
+  // Check for "hoje" (today)
+  if (lowerText.includes('hoje')) {
+    return now.toISOString();
+  }
+  
+  // Check for "amanhã" (tomorrow)
+  if (lowerText.includes('amanhã') || lowerText.includes('amanha')) {
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString();
+  }
+  
+  // Check for days of the week
+  const daysOfWeek = [
+    { name: 'domingo', day: 0 },
+    { name: 'segunda', day: 1 },
+    { name: 'terça', day: 2 },
+    { name: 'terca', day: 2 },
+    { name: 'quarta', day: 3 },
+    { name: 'quinta', day: 4 },
+    { name: 'sexta', day: 5 },
+    { name: 'sábado', day: 6 },
+    { name: 'sabado', day: 6 },
+  ];
+  
+  for (const dayInfo of daysOfWeek) {
+    if (lowerText.includes(dayInfo.name)) {
+      const currentDay = now.getDay();
+      let daysUntil = dayInfo.day - currentDay;
+      if (daysUntil <= 0) {
+        daysUntil += 7;
+      }
+      const targetDate = new Date(now);
+      targetDate.setDate(targetDate.getDate() + daysUntil);
+      return targetDate.toISOString();
+    }
+  }
+  
+  // Check for relative dates like "próxima semana" (next week)
+  if (lowerText.includes('próxima semana') || lowerText.includes('proxima semana')) {
+    const nextWeek = new Date(now);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    return nextWeek.toISOString();
+  }
+  
+  // Check for date patterns like "dia 15", "15/12", "15/12/2024"
+  const datePatterns = [
+    /(\d{1,2})\/(\d{1,2})(?:\/(\d{4}))?/,  // DD/MM or DD/MM/YYYY
+    /dia\s+(\d{1,2})/i,                      // "dia 15"
+  ];
+  
+  for (const pattern of datePatterns) {
+    const match = lowerText.match(pattern);
+    if (match) {
+      if (match[2]) {
+        // DD/MM format
+        const day = parseInt(match[1]);
+        const month = parseInt(match[2]) - 1;
+        const year = match[3] ? parseInt(match[3]) : now.getFullYear();
+        const date = new Date(year, month, day);
+        return date.toISOString();
+      } else if (match[1]) {
+        // "dia X" format
+        const day = parseInt(match[1]);
+        const date = new Date(now.getFullYear(), now.getMonth(), day);
+        if (date < now) {
+          date.setMonth(date.getMonth() + 1);
+        }
+        return date.toISOString();
+      }
+    }
+  }
+  
+  return null;
+}
+
+function extractTime(text: string): number | null {
+  const lowerText = text.toLowerCase();
+  
+  // Patterns for time extraction
+  const patterns = [
+    { regex: /(\d+)\s*(?:hora|horas|h)\b/, multiplier: 60 },
+    { regex: /(\d+)\s*(?:minuto|minutos|min)\b/, multiplier: 1 },
+    { regex: /(\d+)\s*(?:pomodoro|pomodoros)\b/, multiplier: 25 },
+  ];
+  
+  let totalMinutes = 0;
+  let found = false;
+  
+  for (const pattern of patterns) {
+    const match = lowerText.match(pattern.regex);
+    if (match) {
+      totalMinutes += parseInt(match[1]) * pattern.multiplier;
+      found = true;
+    }
+  }
+  
+  // Common task types with default durations
+  const defaultDurations: Record<string, number> = {
+    'reunião': 60,
+    'reuniao': 60,
+    'meeting': 60,
+    'call': 30,
+    'ligação': 30,
+    'ligacao': 30,
+    'email': 15,
+    'e-mail': 15,
+    'review': 30,
+    'revisão': 30,
+    'revisao': 30,
+  };
+  
+  if (!found) {
+    for (const [keyword, duration] of Object.entries(defaultDurations)) {
+      if (lowerText.includes(keyword)) {
+        return duration;
+      }
+    }
+  }
+  
+  return found ? totalMinutes : null;
+}
+
+function extractTitle(text: string): string {
+  // Remove time, date, and priority indicators for cleaner title
+  let title = text;
+  
+  // Remove common patterns
+  const patternsToRemove = [
+    /\b(urgente|importante|crítico|crítica|alta prioridade|baixa prioridade)\b/gi,
+    /\b(hoje|amanhã|amanha|próxima semana|proxima semana)\b/gi,
+    /\b(\d+)\s*(hora|horas|h|minuto|minutos|min|pomodoro|pomodoros)\b/gi,
+    /\b(às|as)\s+\d{1,2}(:\d{2})?\s*(h|horas)?\b/gi,
+    /\d{1,2}\/\d{1,2}(\/\d{4})?/g,
+    /!+/g,
+  ];
+  
+  for (const pattern of patternsToRemove) {
+    title = title.replace(pattern, '');
+  }
+  
+  // Clean up extra spaces and trim
+  title = title.replace(/\s+/g, ' ').trim();
+  
+  // Capitalize first letter
+  if (title.length > 0) {
+    title = title.charAt(0).toUpperCase() + title.slice(1);
+  }
+  
+  // If title is too short after cleanup, use original
+  if (title.length < 3) {
+    title = text.substring(0, 50) + (text.length > 50 ? '...' : '');
+  }
+  
+  return title;
+}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { taskText } = body;
 
-    // Placeholder response - in a real implementation, you would:
-    // 1. Call an LLM API (OpenAI/Gemini) to parse the natural language task
-    // 2. Extract structured data like title, description, due date, priority, etc.
-    // 3. Return the structured data
+    if (!taskText || typeof taskText !== 'string') {
+      return new Response(JSON.stringify({ error: 'Task text is required' }), {
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    }
 
-    // Mock response for demonstration
-    const parsedTask = {
-      title: taskText.substring(0, 50) + (taskText.length > 50 ? '...' : ''),
+    // Parse the natural language task
+    const parsedTask: ParsedTask = {
+      title: extractTitle(taskText),
       description: taskText,
-      dueDate: null, // Will be extracted by LLM
-      priority: 'medium', // Will be determined by LLM
-      estimatedTime: null, // Will be estimated by LLM
+      dueDate: extractDate(taskText),
+      priority: extractPriority(taskText),
+      estimatedTime: extractTime(taskText),
     };
 
     return new Response(JSON.stringify(parsedTask), {
