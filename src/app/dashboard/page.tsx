@@ -16,6 +16,11 @@ import {
   Play
 } from "lucide-react";
 
+// Constants
+const DEFAULT_EVENT_DURATION_MINUTES = 60;
+const STATUS_RESET_DELAY_MS = 3000;
+const MIN_DESCRIPTION_LENGTH_THRESHOLD = 10;
+
 interface Task {
   id: string;
   title: string;
@@ -31,6 +36,11 @@ interface Task {
 const isDescriptionRedundant = (title: string, description: string): boolean => {
   if (!description || !title) return true;
   
+  // If description is significantly longer than title, it likely has additional info
+  if (description.length > title.length + MIN_DESCRIPTION_LENGTH_THRESHOLD) {
+    return false;
+  }
+  
   // Normalize both strings for comparison
   const normalizeString = (str: string) => 
     str.toLowerCase()
@@ -40,11 +50,9 @@ const isDescriptionRedundant = (title: string, description: string): boolean => 
   const normalizedTitle = normalizeString(title);
   const normalizedDesc = normalizeString(description);
   
-  // Check if description is same as title, or if title is contained in description
-  // with only minor additions (like time info)
+  // Check if description is same as title, or if they are very similar
   return normalizedDesc === normalizedTitle || 
-         normalizedTitle.includes(normalizedDesc) ||
-         normalizedDesc.includes(normalizedTitle);
+         normalizedTitle === normalizedDesc;
 };
 
 export default function Dashboard() {
@@ -109,9 +117,9 @@ export default function Dashboard() {
     try {
       setCalendarSyncStatus('syncing');
       
-      // Calculate end time (add estimated time or default to 1 hour)
+      // Calculate end time (add estimated time or default duration)
       const startTime = new Date(task.dueDate);
-      const durationMinutes = task.estimatedTime || 60;
+      const durationMinutes = task.estimatedTime || DEFAULT_EVENT_DURATION_MINUTES;
       const endTime = new Date(startTime.getTime() + durationMinutes * 60 * 1000);
       
       const response = await fetch('/api/calendar', {
@@ -127,18 +135,17 @@ export default function Dashboard() {
         }),
       });
       
-      if (response.ok) {
-        setCalendarSyncStatus('success');
-        // Reset status after 3 seconds
-        setTimeout(() => setCalendarSyncStatus('idle'), 3000);
-      } else {
-        throw new Error('Failed to create calendar event');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to create calendar event');
       }
+      
+      setCalendarSyncStatus('success');
+      setTimeout(() => setCalendarSyncStatus('idle'), STATUS_RESET_DELAY_MS);
     } catch (error) {
       console.error('Error creating calendar event:', error);
       setCalendarSyncStatus('error');
-      // Reset status after 3 seconds
-      setTimeout(() => setCalendarSyncStatus('idle'), 3000);
+      setTimeout(() => setCalendarSyncStatus('idle'), STATUS_RESET_DELAY_MS);
     }
   };
 
@@ -192,6 +199,12 @@ export default function Dashboard() {
     setActiveTaskId(taskId);
     setTimerSeconds(25 * 60);
     setIsTimerRunning(true);
+  };
+
+  // Set timer to a specific preset duration
+  const setTimerPreset = (minutes: number) => {
+    setTimerSeconds(minutes * 60);
+    setIsTimerRunning(false);
   };
 
   const formatTime = (seconds: number) => {
@@ -359,7 +372,7 @@ export default function Dashboard() {
                 {/* Improved preset buttons with better contrast */}
                 <div className="flex justify-center gap-2">
                   <button
-                    onClick={() => { setTimerSeconds(25 * 60); setIsTimerRunning(false); }}
+                    onClick={() => setTimerPreset(25)}
                     className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                       timerSeconds === 25 * 60 && !isTimerRunning
                         ? 'bg-indigo-100 text-indigo-700 ring-2 ring-indigo-300'
@@ -369,7 +382,7 @@ export default function Dashboard() {
                     25 min
                   </button>
                   <button
-                    onClick={() => { setTimerSeconds(5 * 60); setIsTimerRunning(false); }}
+                    onClick={() => setTimerPreset(5)}
                     className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                       timerSeconds === 5 * 60 && !isTimerRunning
                         ? 'bg-emerald-100 text-emerald-700 ring-2 ring-emerald-300'
@@ -379,7 +392,7 @@ export default function Dashboard() {
                     5 min
                   </button>
                   <button
-                    onClick={() => { setTimerSeconds(15 * 60); setIsTimerRunning(false); }}
+                    onClick={() => setTimerPreset(15)}
                     className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                       timerSeconds === 15 * 60 && !isTimerRunning
                         ? 'bg-amber-100 text-amber-700 ring-2 ring-amber-300'
