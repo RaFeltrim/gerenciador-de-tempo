@@ -1,11 +1,12 @@
 import { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { authOptions } from '../../../lib/auth';
 import { getUpcomingEvents, createEvent } from '../../../lib/google-calendar';
 
 // Get upcoming events from Google Calendar
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     
     if (!session?.accessToken) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
 // Create a new event in Google Calendar
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     
     if (!session?.accessToken) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {

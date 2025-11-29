@@ -89,7 +89,7 @@ export default function Dashboard() {
     const parsedTask = await parseTask(newTaskText);
     
     const newTask: Task = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       title: parsedTask?.title || newTaskText,
       description: parsedTask?.description || newTaskText,
       priority: parsedTask?.priority || 'medium',

@@ -108,12 +108,30 @@ function extractDate(text: string): string | null {
         const date = new Date(year, month, day);
         return date.toISOString();
       } else if (match[1]) {
-        // "dia X" format
+        // "dia X" format - safely handle month rollover
         const day = parseInt(match[1]);
-        const date = new Date(now.getFullYear(), now.getMonth(), day);
+        let targetMonth = now.getMonth();
+        let targetYear = now.getFullYear();
+        
+        // Create date and check if it's valid
+        let date = new Date(targetYear, targetMonth, day);
+        
+        // If date is in the past, move to next month
         if (date < now) {
-          date.setMonth(date.getMonth() + 1);
+          targetMonth += 1;
+          if (targetMonth > 11) {
+            targetMonth = 0;
+            targetYear += 1;
+          }
+          date = new Date(targetYear, targetMonth, day);
         }
+        
+        // Validate the day is valid for the target month
+        const daysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+        if (day > daysInMonth) {
+          return null; // Invalid day for this month
+        }
+        
         return date.toISOString();
       }
     }
