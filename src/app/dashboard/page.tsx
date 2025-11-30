@@ -128,7 +128,8 @@ export default function Dashboard() {
 
   // Fetch Google Tasks
   const fetchGoogleTasks = useCallback(async () => {
-    if (!session?.accessToken) return;
+    // Only fetch if we have a valid session
+    if (status !== 'authenticated' || !session?.accessToken) return;
     
     try {
       const response = await fetch('/api/google-tasks');
@@ -139,11 +140,12 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Error fetching Google Tasks:', error);
     }
-  }, [session?.accessToken]);
+  }, [session?.accessToken, status]);
 
   // Fetch Calendar Events
   const fetchCalendarEvents = useCallback(async () => {
-    if (!session?.accessToken) return;
+    // Only fetch if we have a valid session
+    if (status !== 'authenticated' || !session?.accessToken) return;
     
     try {
       const response = await fetch('/api/calendar?maxResults=20');
@@ -154,10 +156,13 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Error fetching calendar events:', error);
     }
-  }, [session?.accessToken]);
+  }, [session?.accessToken, status]);
 
   // Sync all Google data
   const syncGoogleData = async () => {
+    // Only sync if we have a valid session
+    if (status !== 'authenticated' || !session?.accessToken) return;
+    
     setIsSyncing(true);
     try {
       await Promise.all([fetchGoogleTasks(), fetchCalendarEvents()]);
@@ -194,13 +199,13 @@ export default function Dashboard() {
     }
   }, [status, router]);
 
-  // Fetch Google data on session change
+  // Fetch Google data only when session is fully authenticated
   useEffect(() => {
-    if (session?.accessToken) {
+    if (status === 'authenticated' && session?.accessToken) {
       fetchGoogleTasks();
       fetchCalendarEvents();
     }
-  }, [session?.accessToken, fetchGoogleTasks, fetchCalendarEvents]);
+  }, [status, session?.accessToken, fetchGoogleTasks, fetchCalendarEvents]);
 
   // Timer countdown
   useEffect(() => {
@@ -448,13 +453,12 @@ export default function Dashboard() {
   };
 
   const startTimerForTask = (taskId: string) => {
-    const task = tasks.find(t => t.id === taskId);
-    const durationMinutes = task?.estimatedTime || DEFAULT_TIMER_MINUTES;
-    const totalSecs = durationMinutes * 60;
+    // Set timer to default Pomodoro time (25 minutes) instead of task duration
+    const totalSecs = DEFAULT_TIMER_SECONDS;
     setActiveTaskId(taskId);
     setTimerSeconds(totalSecs);
     setTimerTotalSeconds(totalSecs);
-    setIsTimerRunning(true);
+    setIsTimerRunning(false); // Don't start automatically, let user start manually
   };
 
   const setTimerPreset = (minutes: number) => {
@@ -523,19 +527,21 @@ export default function Dashboard() {
     
     const days: CalendarDay[] = [];
     
+    // Add days from previous month
     for (let i = startingDayOfWeek - 1; i >= 0; i--) {
       const day = daysFromPrevMonth - i;
       const date = new Date(year, month - 1, day);
       days.push({ date, dayNumber: day, isCurrentMonth: false, hasEvent: hasTasksOnDate(date) });
     }
     
+    // Add days from current month
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
       days.push({ date, dayNumber: day, isCurrentMonth: true, hasEvent: hasTasksOnDate(date) });
     }
     
-    const totalCells = days.length <= 35 ? 35 : 42;
-    const remainingDays = totalCells - days.length;
+    // Always fill to 42 cells (6 weeks) - add days from next month
+    const remainingDays = 42 - days.length;
     for (let day = 1; day <= remainingDays; day++) {
       const date = new Date(year, month + 1, day);
       days.push({ date, dayNumber: day, isCurrentMonth: false, hasEvent: hasTasksOnDate(date) });
@@ -690,8 +696,8 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Main Grid */}
-        <div className="grid lg:grid-cols-3 gap-6">
+        {/* Main Grid - Responsive layout */}
+        <div className="dashboard-grid grid lg:grid-cols-3 gap-6">
           {/* Left Column - Tasks */}
           <div className="lg:col-span-2 space-y-6">
             {/* Add Task Card */}
@@ -717,7 +723,7 @@ export default function Dashboard() {
                     onChange={(e) => setNewTaskText(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && addTask()}
                     placeholder="Ex: Reunião com cliente amanhã às 14h, alta prioridade"
-                    className="w-full input-modern pr-12"
+                    className="w-full input-modern pr-12 h-12" // Added h-12 for better input height
                     disabled={isLoading}
                   />
                   <Zap className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -745,7 +751,7 @@ export default function Dashboard() {
                         }
                       }}
                       placeholder="Duração (min)"
-                      className="w-full input-modern pr-10 text-sm"
+                      className="w-full input-modern pr-10 text-sm h-12" // Added h-12
                       min="1"
                       max="480"
                     />
@@ -754,7 +760,7 @@ export default function Dashboard() {
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="input-modern text-sm"
+                    className="input-modern text-sm h-12" // Added h-12
                   >
                     <option value="">Categoria...</option>
                     {CATEGORIES.map(cat => (
@@ -767,7 +773,7 @@ export default function Dashboard() {
                       value={tagInput}
                       onChange={(e) => setTagInput(e.target.value)}
                       placeholder="Tags (vírgula)"
-                      className="w-full input-modern pr-10 text-sm"
+                      className="w-full input-modern pr-10 text-sm h-12" // Added h-12
                     />
                     <Tag className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   </div>
@@ -826,13 +832,13 @@ export default function Dashboard() {
                         
                         if (isEditing) {
                           return (
-                            <div key={task.id} className="bg-indigo-50 rounded-xl p-5 border border-indigo-200">
+                            <div key={task.id} className="bg-indigo-50 rounded-2xl p-5 border border-indigo-200">
                               <div className="space-y-4">
                                 <input
                                   type="text"
                                   value={editForm.title || ''}
                                   onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                                  className="w-full input-modern font-medium"
+                                  className="w-full input-modern font-medium h-12"
                                   placeholder="Título"
                                 />
                                 <textarea
@@ -842,33 +848,42 @@ export default function Dashboard() {
                                   rows={2}
                                   placeholder="Descrição"
                                 />
-                                <div className="grid grid-cols-3 gap-3">
-                                  <select
-                                    value={editForm.priority || 'medium'}
-                                    onChange={(e) => setEditForm({ ...editForm, priority: e.target.value as Task['priority'] })}
-                                    className="input-modern text-sm"
-                                  >
-                                    <option value="high">Alta</option>
-                                    <option value="medium">Média</option>
-                                    <option value="low">Baixa</option>
-                                  </select>
-                                  <select
-                                    value={editForm.category || ''}
-                                    onChange={(e) => setEditForm({ ...editForm, category: e.target.value || null })}
-                                    className="input-modern text-sm"
-                                  >
-                                    <option value="">Sem categoria</option>
-                                    {CATEGORIES.map(cat => (
-                                      <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                    ))}
-                                  </select>
-                                  <input
-                                    type="number"
-                                    value={editForm.estimatedTime || ''}
-                                    onChange={(e) => setEditForm({ ...editForm, estimatedTime: e.target.value ? parseInt(e.target.value) : null })}
-                                    placeholder="min"
-                                    className="input-modern text-sm"
-                                  />
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Prioridade</label>
+                                    <select
+                                      value={editForm.priority || 'medium'}
+                                      onChange={(e) => setEditForm({ ...editForm, priority: e.target.value as Task['priority'] })}
+                                      className="input-modern text-sm w-full"
+                                    >
+                                      <option value="high">Alta</option>
+                                      <option value="medium">Média</option>
+                                      <option value="low">Baixa</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Categoria</label>
+                                    <select
+                                      value={editForm.category || ''}
+                                      onChange={(e) => setEditForm({ ...editForm, category: e.target.value || null })}
+                                      className="input-modern text-sm w-full"
+                                    >
+                                      <option value="">Sem categoria</option>
+                                      {CATEGORIES.map(cat => (
+                                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Duração (min)</label>
+                                    <input
+                                      type="number"
+                                      value={editForm.estimatedTime || ''}
+                                      onChange={(e) => setEditForm({ ...editForm, estimatedTime: e.target.value ? parseInt(e.target.value) : null })}
+                                      placeholder="min"
+                                      className="input-modern text-sm w-full"
+                                    />
+                                  </div>
                                 </div>
                                 <div className="flex justify-end gap-2">
                                   <button onClick={cancelEdit} className="px-4 py-2 text-gray-600 hover:bg-white rounded-lg transition-colors">
@@ -886,7 +901,7 @@ export default function Dashboard() {
                         return (
                           <div
                             key={task.id}
-                            className={`task-card border-l-4 ${priorityStyles.border} ${task.completed ? 'opacity-50' : ''} p-4`}
+                            className={`task-card border-l-4 ${priorityStyles.border} ${task.completed ? 'opacity-50' : ''}`}
                           >
                             <div className="flex items-start gap-3">
                               <button
@@ -1043,8 +1058,8 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Right Column - Timer, Calendar, Events */}
-          <div className="space-y-6">
+          {/* Right Column - Timer, Calendar, Events - Responsive sidebar */}
+          <div className="sidebar-right space-y-6">
             {/* Timer Card */}
             <div className="glass rounded-2xl p-6 card-hover">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -1168,8 +1183,14 @@ export default function Dashboard() {
                   return (
                     <div
                       key={date.toISOString()}
-                      className={`calendar-day text-xs ${
-                        !isCurrentMonth ? 'text-gray-300' : todayDate ? 'today' : hasEvent ? 'has-event text-gray-700 font-medium' : 'text-gray-600'
+                      className={`calendar-day text-xs text-center py-1 ${
+                        !isCurrentMonth 
+                          ? 'text-gray-400 opacity-40' 
+                          : todayDate 
+                            ? 'today' 
+                            : hasEvent 
+                              ? 'has-event text-gray-700 font-medium' 
+                              : 'text-gray-600'
                       }`}
                     >
                       {dayNumber}

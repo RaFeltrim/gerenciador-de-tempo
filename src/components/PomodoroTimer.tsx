@@ -58,15 +58,15 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
   };
 
   return (
-    <div className="flex flex-col items-center p-6 bg-white rounded-xl shadow-lg border border-gray-100">
-      <div className="text-4xl font-mono font-bold mb-6 text-gray-800">
+    <div className="flex flex-col items-center p-8 bg-white/90 rounded-2xl shadow-lg border border-gray-100 backdrop-blur-sm">
+      <div className="text-4xl font-mono font-bold mb-8 text-gray-800">
         {formatTime(timeLeft)}
       </div>
-      <div className="flex gap-3">
+      <div className="flex gap-4">
         {!isRunning ? (
           <button
             onClick={handleStart}
-            className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl hover:from-indigo-700 hover:to-indigo-800 transition-all font-medium shadow-lg shadow-indigo-500/20"
           >
             <Play className="h-5 w-5" />
             Iniciar
@@ -74,7 +74,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
         ) : (
           <button
             onClick={handlePause}
-            className="flex items-center gap-2 px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl hover:from-red-700 hover:to-red-800 transition-all font-medium shadow-lg shadow-red-500/20"
           >
             <Pause className="h-5 w-5" />
             Pausar
@@ -82,7 +82,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
         )}
         <button
           onClick={handleReset}
-          className="flex items-center gap-2 px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+          className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all font-medium shadow-sm"
         >
           <RotateCcw className="h-5 w-5" />
           Resetar
