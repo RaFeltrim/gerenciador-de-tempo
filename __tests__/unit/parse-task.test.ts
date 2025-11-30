@@ -3,22 +3,7 @@
  * Tests for the natural language task parsing endpoint
  */
 
-// Mock the date-validation module
-jest.mock('../../src/lib/date-validation', () => ({
-  isValidDate: (day: number, month: number, year: number) => {
-    // Simple implementation for testing
-    const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    
-    // Check leap year for February
-    const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
-    if (month === 2 && isLeapYear) {
-      return day >= 1 && day <= 29;
-    }
-    
-    if (month < 1 || month > 12 || day < 1) return false;
-    return day <= daysInMonth[month - 1];
-  }
-}));
+import { isValidDate } from '../../src/lib/date-validation';
 
 describe('Parse Task Logic', () => {
   describe('Priority Extraction', () => {

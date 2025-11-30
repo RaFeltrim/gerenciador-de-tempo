@@ -133,17 +133,17 @@ describe('Task Utilities', () => {
         expect(result).not.toBeNull();
         
         const resultDate = new Date(result!);
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 2); // +1 for tomorrow, +1 for daily pattern
         
-        // Just verify it's a valid future date
+        // Just verify it's a valid future date (tomorrow + 1 day for daily pattern)
         expect(resultDate.getTime()).toBeGreaterThan(Date.now());
       });
     });
 
     describe('invalid pattern handling', () => {
       it('should return null for invalid pattern', () => {
-        const result = calculateNextDueDate(baseDate, 'invalid' as RecurrencePattern);
+        // Testing runtime behavior with invalid input
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const result = calculateNextDueDate(baseDate, 'invalid' as any);
         expect(result).toBeNull();
       });
     });
