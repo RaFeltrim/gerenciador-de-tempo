@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { isValidDate } from '../../../lib/date-validation';
 
 // Natural Language Processing for task parsing
 // Parses Portuguese natural language to extract structured task data
@@ -137,33 +138,51 @@ function extractDate(text: string): string | null {
       if (match[2]) {
         // DD/MM format
         const day = parseInt(match[1]);
-        const month = parseInt(match[2]) - 1;
+        const month = parseInt(match[2]); // Keep 1-indexed for validation
         const year = match[3] ? parseInt(match[3]) : now.getFullYear();
-        const date = new Date(year, month, day);
+        
+        // Strict date validation - reject invalid calendar dates like 31/11
+        if (!isValidDate(day, month, year)) {
+          return null; // Invalid date - don't roll over to next month
+        }
+        
+        const date = new Date(year, month - 1, day); // Convert to 0-indexed for Date constructor
         return extractTimeFromText(date).toISOString();
       } else if (match[1]) {
         // "dia X" format - safely handle month rollover
         const day = parseInt(match[1]);
-        let targetMonth = now.getMonth();
+        let targetMonth = now.getMonth() + 1; // Convert to 1-indexed for validation
         let targetYear = now.getFullYear();
         
-        // Create date and check if it's valid
-        let date = new Date(targetYear, targetMonth, day);
+        // Validate the day is valid for the target month using strict validation
+        if (!isValidDate(day, targetMonth, targetYear)) {
+          // Try next month
+          targetMonth += 1;
+          if (targetMonth > 12) {
+            targetMonth = 1;
+            targetYear += 1;
+          }
+          // If still invalid, return null
+          if (!isValidDate(day, targetMonth, targetYear)) {
+            return null; // Invalid day for this month
+          }
+        }
+        
+        // Create date (convert back to 0-indexed for Date constructor)
+        let date = new Date(targetYear, targetMonth - 1, day);
         
         // If date is in the past, move to next month
         if (date < now) {
           targetMonth += 1;
-          if (targetMonth > 11) {
-            targetMonth = 0;
+          if (targetMonth > 12) {
+            targetMonth = 1;
             targetYear += 1;
           }
-          date = new Date(targetYear, targetMonth, day);
-        }
-        
-        // Validate the day is valid for the target month
-        const daysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
-        if (day > daysInMonth) {
-          return null; // Invalid day for this month
+          // Validate again for the new month
+          if (!isValidDate(day, targetMonth, targetYear)) {
+            return null; // Invalid day for this month
+          }
+          date = new Date(targetYear, targetMonth - 1, day);
         }
         
         return extractTimeFromText(date).toISOString();
