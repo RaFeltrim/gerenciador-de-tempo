@@ -10,7 +10,7 @@ import {
   Circle,
   Repeat
 } from "lucide-react";
-import { getRecurrenceLabel } from "../lib/task-utils";
+import { getRecurrenceLabel, RecurrencePattern } from "../lib/task-utils";
 
 // Predefined categories
 const CATEGORIES = [
@@ -34,7 +34,7 @@ interface Task {
   category?: string | null;
   tags?: string[];
   isRecurring?: boolean;
-  recurrencePattern?: string | null;
+  recurrencePattern?: RecurrencePattern | null;
   parentTaskId?: string | null;
 }
 
