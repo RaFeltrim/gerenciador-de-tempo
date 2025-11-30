@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, title, description, priority, estimatedTime, dueDate, category, tags } = body;
+    const { id, title, description, priority, estimatedTime, dueDate, category, tags, isRecurring, recurrencePattern } = body;
 
     if (!title) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
@@ -61,6 +61,9 @@ export async function POST(request: NextRequest) {
       completed: false,
       category: category || null,
       tags: tags || [],
+      is_recurring: isRecurring || false,
+      recurrence_pattern: recurrencePattern || null,
+      parent_task_id: null,
     });
 
     if (!task) {
@@ -107,6 +110,8 @@ export async function PUT(request: NextRequest) {
     if (updates.completed !== undefined) dbUpdates.completed = updates.completed;
     if (updates.category !== undefined) dbUpdates.category = updates.category;
     if (updates.tags !== undefined) dbUpdates.tags = updates.tags;
+    if (updates.isRecurring !== undefined) dbUpdates.is_recurring = updates.isRecurring;
+    if (updates.recurrencePattern !== undefined) dbUpdates.recurrence_pattern = updates.recurrencePattern;
 
     const task = await taskOperations.updateTask(id, session.user.email, dbUpdates);
 
