@@ -113,7 +113,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
   
   return (
     <div
-      className={`border rounded-xl p-4 transition-all hover:shadow-md ${
+      className={`border rounded-2xl p-5 transition-all hover:shadow-md ${
         task.completed 
           ? 'bg-gray-50 border-gray-200 opacity-60' 
           : getPriorityBg(task.priority)
@@ -148,8 +148,8 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                 {task.description}
               </p>
             )}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-2">
-              <span className={`flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-3">
+              <span className={`flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full ${
                 task.priority === 'high' 
                   ? 'bg-red-100 text-red-700' 
                   : task.priority === 'medium' 
@@ -160,24 +160,24 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                 {task.priority === 'high' ? 'Alta' : task.priority === 'medium' ? 'Média' : 'Baixa'}
               </span>
               {task.isRecurring && task.recurrencePattern && (
-                <span className="flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-violet-100 text-violet-700">
+                <span className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-violet-100 text-violet-700">
                   <Repeat className="h-3 w-3" />
                   {getRecurrenceLabel(task.recurrencePattern)}
                 </span>
               )}
               {categoryInfo && (
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${categoryInfo.color}`}>
+                <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${categoryInfo.color}`}>
                   {categoryInfo.name}
                 </span>
               )}
               {task.estimatedTime && (
-                <span className="flex items-center gap-1 text-xs text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
+                <span className="flex items-center gap-1 text-xs text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full">
                   <Clock className="h-3 w-3" />
                   {task.estimatedTime} min
                 </span>
               )}
               {task.dueDate && (
-                <span className="flex items-center gap-1 text-xs text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
+                <span className="flex items-center gap-1 text-xs text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full">
                   <Calendar className="h-3 w-3" />
                   {new Date(task.dueDate).toLocaleDateString('pt-BR')}
                 </span>
@@ -185,11 +185,11 @@ export const TaskItem: React.FC<TaskItemProps> = ({
             </div>
             {/* Tags */}
             {task.tags && task.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2">
+              <div className="flex flex-wrap gap-1 mt-3">
                 {task.tags.map((tag, index) => (
                   <span
                     key={index}
-                    className="inline-flex items-center gap-1 text-xs px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-full"
+                    className="inline-flex items-center gap-1 text-xs px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-full"
                   >
                     <Tag className="h-2.5 w-2.5" />
                     {tag}
