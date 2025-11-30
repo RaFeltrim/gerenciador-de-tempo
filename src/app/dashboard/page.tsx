@@ -160,8 +160,11 @@ export default function Dashboard() {
     
     const parsedTask = await parseTask(newTaskText);
     
-    // Use custom time if provided, otherwise use parsed time
-    const customTimeValue = customTime ? parseInt(customTime, 10) : null;
+    // Use custom time if provided and valid, otherwise use parsed time
+    const parsedCustomTime = customTime ? parseInt(customTime, 10) : NaN;
+    const customTimeValue = !isNaN(parsedCustomTime) && parsedCustomTime > 0 && parsedCustomTime <= 480 
+      ? parsedCustomTime 
+      : null;
     const estimatedTime = customTimeValue || parsedTask?.estimatedTime || null;
     
     const newTask: Task = {
@@ -387,7 +390,13 @@ export default function Dashboard() {
                     <input
                       type="number"
                       value={customTime}
-                      onChange={(e) => setCustomTime(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Allow empty string or valid numbers within range
+                        if (value === '' || (parseInt(value, 10) >= 1 && parseInt(value, 10) <= 480)) {
+                          setCustomTime(value);
+                        }
+                      }}
                       placeholder="min"
                       min="1"
                       max="480"
@@ -705,14 +714,17 @@ export default function Dashboard() {
                         todayDate
                           ? 'bg-indigo-600 text-white font-bold'
                           : hasTasksToday
-                            ? 'bg-red-100 text-red-700 font-medium hover:bg-red-200'
+                            ? 'bg-red-100 text-red-700 font-medium hover:bg-red-200 ring-2 ring-red-300'
                             : 'hover:bg-gray-100 text-gray-700'
                       }`}
+                      title={hasTasksToday ? `${dayTasks.length} tarefa(s) agendada(s)` : undefined}
+                      aria-label={`${date.getDate()} ${hasTasksToday ? `, ${dayTasks.length} tarefa(s)` : ''}`}
                     >
                       <span>{date.getDate()}</span>
                       {hasTasksToday && (
-                        <span className={`text-[10px] ${todayDate ? 'text-white/80' : 'text-red-600'}`}>
-                          {dayTasks.length} {dayTasks.length === 1 ? 'tarefa' : 'tarefas'}
+                        <span className={`text-[10px] flex items-center gap-0.5 ${todayDate ? 'text-white/80' : 'text-red-600'}`}>
+                          <span className="sr-only">Tarefas: </span>
+                          •{dayTasks.length}
                         </span>
                       )}
                     </div>
