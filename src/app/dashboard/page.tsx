@@ -15,13 +15,28 @@ import {
   Flag,
   Play,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Tag,
+  Edit3,
+  X,
+  Save,
+  BarChart3
 } from "lucide-react";
 
 // Constants
 const DEFAULT_EVENT_DURATION_MINUTES = 60;
 const STATUS_RESET_DELAY_MS = 3000;
 const MIN_DESCRIPTION_LENGTH_THRESHOLD = 10;
+
+// Predefined categories
+const CATEGORIES = [
+  { id: 'work', name: 'Trabalho', color: 'bg-blue-100 text-blue-700' },
+  { id: 'personal', name: 'Pessoal', color: 'bg-purple-100 text-purple-700' },
+  { id: 'study', name: 'Estudo', color: 'bg-green-100 text-green-700' },
+  { id: 'health', name: 'Saúde', color: 'bg-red-100 text-red-700' },
+  { id: 'finance', name: 'Finanças', color: 'bg-yellow-100 text-yellow-700' },
+  { id: 'other', name: 'Outros', color: 'bg-gray-100 text-gray-700' },
+];
 
 interface Task {
   id: string;
@@ -32,6 +47,8 @@ interface Task {
   dueDate: string | null;
   completed: boolean;
   createdAt: string;
+  category?: string | null;
+  tags?: string[];
 }
 
 // Helper function to check if description is essentially the same as title
@@ -69,6 +86,34 @@ export default function Dashboard() {
   const [calendarSyncStatus, setCalendarSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
   const [customTime, setCustomTime] = useState<string>('');
   const [calendarMonth, setCalendarMonth] = useState(new Date());
+  
+  // New state for categories and editing
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [tagInput, setTagInput] = useState<string>('');
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<Partial<Task>>({});
+  const [showAnalytics, setShowAnalytics] = useState(false);
+
+  // Load tasks from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedTasks = localStorage.getItem('focusflow_tasks');
+      if (savedTasks) {
+        try {
+          setTasks(JSON.parse(savedTasks));
+        } catch (e) {
+          console.error('Error loading tasks from localStorage:', e);
+        }
+      }
+    }
+  }, []);
+
+  // Save tasks to localStorage whenever they change
+  useEffect(() => {
+    if (typeof window !== 'undefined' && tasks.length > 0) {
+      localStorage.setItem('focusflow_tasks', JSON.stringify(tasks));
+    }
+  }, [tasks]);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -167,6 +212,12 @@ export default function Dashboard() {
       : null;
     const estimatedTime = customTimeValue || parsedTask?.estimatedTime || null;
     
+    // Parse tags from tagInput
+    const tags = tagInput
+      .split(',')
+      .map(t => t.trim())
+      .filter(t => t.length > 0);
+    
     const newTask: Task = {
       id: crypto.randomUUID(),
       title: parsedTask?.title || newTaskText,
@@ -176,11 +227,15 @@ export default function Dashboard() {
       dueDate: parsedTask?.dueDate || null,
       completed: false,
       createdAt: new Date().toISOString(),
+      category: selectedCategory || null,
+      tags: tags,
     };
     
     setTasks((prev) => [...prev, newTask]);
     setNewTaskText('');
     setCustomTime(''); // Clear custom time input
+    setSelectedCategory(''); // Clear category selection
+    setTagInput(''); // Clear tags input
     
     // Create Google Calendar event if task has a due date
     if (newTask.dueDate) {
@@ -204,6 +259,53 @@ export default function Dashboard() {
     if (activeTaskId === id) {
       setActiveTaskId(null);
     }
+    // Also update localStorage
+    if (typeof window !== 'undefined') {
+      const updatedTasks = tasks.filter((task) => task.id !== id);
+      if (updatedTasks.length === 0) {
+        localStorage.removeItem('focusflow_tasks');
+      }
+    }
+  };
+
+  // Start editing a task
+  const startEditing = (task: Task) => {
+    setEditingTaskId(task.id);
+    setEditForm({
+      title: task.title,
+      description: task.description,
+      priority: task.priority,
+      estimatedTime: task.estimatedTime,
+      dueDate: task.dueDate,
+      category: task.category,
+      tags: task.tags,
+    });
+  };
+
+  // Save edited task
+  const saveEdit = () => {
+    if (!editingTaskId) return;
+    
+    setTasks((prev) =>
+      prev.map((task) =>
+        task.id === editingTaskId
+          ? { ...task, ...editForm }
+          : task
+      )
+    );
+    setEditingTaskId(null);
+    setEditForm({});
+  };
+
+  // Cancel editing
+  const cancelEdit = () => {
+    setEditingTaskId(null);
+    setEditForm({});
+  };
+
+  // Get category info
+  const getCategoryInfo = (categoryId: string | null | undefined) => {
+    return CATEGORIES.find(c => c.id === categoryId) || null;
   };
 
   // Start timer with a specific task - uses task's estimated time or default 25 min
@@ -415,6 +517,33 @@ export default function Dashboard() {
                   </button>
                 </div>
               </div>
+              
+              {/* Category and Tags Row */}
+              <div className="flex flex-col sm:flex-row gap-3 mt-3">
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-gray-900 transition-shadow bg-white"
+                  disabled={isLoading}
+                >
+                  <option value="">Selecione categoria...</option>
+                  {CATEGORIES.map(cat => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    placeholder="Tags (separadas por vírgula)"
+                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-gray-900 placeholder-gray-400 transition-shadow"
+                    disabled={isLoading}
+                  />
+                  <Tag className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
+              
               <p className="mt-3 text-sm text-gray-500">
                 Use linguagem natural para descrever suas tarefas. Defina o tempo manualmente (em minutos) ou deixe em branco para extração automática.
               </p>
@@ -525,90 +654,200 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {tasks.map((task) => (
-                    <div
-                      key={task.id}
-                      className={`border rounded-xl p-4 transition-all hover:shadow-md ${
-                        task.completed 
-                          ? 'bg-gray-50 border-gray-200 opacity-60' 
-                          : getPriorityBg(task.priority)
-                      }`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start space-x-3 flex-1">
-                          <button
-                            onClick={() => toggleTask(task.id)}
-                            className="mt-0.5 flex-shrink-0 transition-transform hover:scale-110"
-                          >
-                            {task.completed ? (
-                              <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                            ) : (
-                              <Circle className="h-5 w-5 text-gray-400 hover:text-indigo-500" />
-                            )}
-                          </button>
-                          <div className="flex-1 min-w-0">
-                            <h3
-                              className={`font-medium ${
-                                task.completed
-                                  ? 'line-through text-gray-400'
-                                  : 'text-gray-900'
-                              }`}
-                            >
-                              {task.title}
-                            </h3>
-                            {/* Only show description if it's meaningfully different from title */}
-                            {!isDescriptionRedundant(task.title, task.description) && (
-                              <p className="text-sm text-gray-500 mt-1">
-                                {task.description}
-                              </p>
-                            )}
-                            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-2">
-                              <span className={`flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
-                                task.priority === 'high' 
-                                  ? 'bg-red-100 text-red-700' 
-                                  : task.priority === 'medium' 
-                                    ? 'bg-amber-100 text-amber-700' 
-                                    : 'bg-emerald-100 text-emerald-700'
-                              }`}>
-                                <Flag className="h-3 w-3" />
-                                {task.priority === 'high' ? 'Alta' : task.priority === 'medium' ? 'Média' : 'Baixa'}
-                              </span>
-                              {task.estimatedTime && (
-                                <span className="flex items-center gap-1 text-xs text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
-                                  <Clock className="h-3 w-3" />
-                                  {task.estimatedTime} min
-                                </span>
-                              )}
-                              {task.dueDate && (
-                                <span className="flex items-center gap-1 text-xs text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
-                                  <Calendar className="h-3 w-3" />
-                                  {new Date(task.dueDate).toLocaleDateString('pt-BR')}
-                                </span>
-                              )}
+                  {tasks.map((task) => {
+                    const categoryInfo = getCategoryInfo(task.category);
+                    const isEditing = editingTaskId === task.id;
+                    
+                    if (isEditing) {
+                      return (
+                        <div
+                          key={task.id}
+                          className="border rounded-xl p-4 bg-indigo-50 border-indigo-200"
+                        >
+                          <div className="space-y-3">
+                            <input
+                              type="text"
+                              value={editForm.title || ''}
+                              onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                              placeholder="Título da tarefa"
+                            />
+                            <textarea
+                              value={editForm.description || ''}
+                              onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-none"
+                              placeholder="Descrição"
+                              rows={2}
+                            />
+                            <div className="flex flex-wrap gap-2">
+                              <select
+                                value={editForm.priority || 'medium'}
+                                onChange={(e) => setEditForm({ ...editForm, priority: e.target.value as Task['priority'] })}
+                                className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                              >
+                                <option value="high">Alta</option>
+                                <option value="medium">Média</option>
+                                <option value="low">Baixa</option>
+                              </select>
+                              <select
+                                value={editForm.category || ''}
+                                onChange={(e) => setEditForm({ ...editForm, category: e.target.value || null })}
+                                className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                              >
+                                <option value="">Sem categoria</option>
+                                {CATEGORIES.map(cat => (
+                                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                ))}
+                              </select>
+                              <input
+                                type="number"
+                                value={editForm.estimatedTime || ''}
+                                onChange={(e) => setEditForm({ ...editForm, estimatedTime: e.target.value ? parseInt(e.target.value) : null })}
+                                placeholder="Tempo (min)"
+                                className="w-24 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                              />
+                            </div>
+                            <input
+                              type="text"
+                              value={editForm.tags?.join(', ') || ''}
+                              onChange={(e) => setEditForm({ ...editForm, tags: e.target.value.split(',').map(t => t.trim()).filter(t => t) })}
+                              placeholder="Tags (separadas por vírgula)"
+                              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                            />
+                            <div className="flex justify-end gap-2">
+                              <button
+                                onClick={cancelEdit}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-1"
+                              >
+                                <X className="h-4 w-4" />
+                                Cancelar
+                              </button>
+                              <button
+                                onClick={saveEdit}
+                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-1"
+                              >
+                                <Save className="h-4 w-4" />
+                                Salvar
+                              </button>
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-1 ml-2">
-                          {!task.completed && (
+                      );
+                    }
+                    
+                    return (
+                      <div
+                        key={task.id}
+                        className={`border rounded-xl p-4 transition-all hover:shadow-md ${
+                          task.completed 
+                            ? 'bg-gray-50 border-gray-200 opacity-60' 
+                            : getPriorityBg(task.priority)
+                        }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start space-x-3 flex-1">
                             <button
-                              onClick={() => startTimerForTask(task.id)}
-                              className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                              title="Iniciar Pomodoro para esta tarefa"
+                              onClick={() => toggleTask(task.id)}
+                              className="mt-0.5 flex-shrink-0 transition-transform hover:scale-110"
                             >
-                              <Timer className="h-4 w-4" />
+                              {task.completed ? (
+                                <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                              ) : (
+                                <Circle className="h-5 w-5 text-gray-400 hover:text-indigo-500" />
+                              )}
                             </button>
-                          )}
-                          <button
-                            onClick={() => deleteTask(task.id)}
-                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Excluir tarefa"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+                            <div className="flex-1 min-w-0">
+                              <h3
+                                className={`font-medium ${
+                                  task.completed
+                                    ? 'line-through text-gray-400'
+                                    : 'text-gray-900'
+                                }`}
+                              >
+                                {task.title}
+                              </h3>
+                              {/* Only show description if it's meaningfully different from title */}
+                              {!isDescriptionRedundant(task.title, task.description) && (
+                                <p className="text-sm text-gray-500 mt-1">
+                                  {task.description}
+                                </p>
+                              )}
+                              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-2">
+                                <span className={`flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
+                                  task.priority === 'high' 
+                                    ? 'bg-red-100 text-red-700' 
+                                    : task.priority === 'medium' 
+                                      ? 'bg-amber-100 text-amber-700' 
+                                      : 'bg-emerald-100 text-emerald-700'
+                                }`}>
+                                  <Flag className="h-3 w-3" />
+                                  {task.priority === 'high' ? 'Alta' : task.priority === 'medium' ? 'Média' : 'Baixa'}
+                                </span>
+                                {categoryInfo && (
+                                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${categoryInfo.color}`}>
+                                    {categoryInfo.name}
+                                  </span>
+                                )}
+                                {task.estimatedTime && (
+                                  <span className="flex items-center gap-1 text-xs text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
+                                    <Clock className="h-3 w-3" />
+                                    {task.estimatedTime} min
+                                  </span>
+                                )}
+                                {task.dueDate && (
+                                  <span className="flex items-center gap-1 text-xs text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
+                                    <Calendar className="h-3 w-3" />
+                                    {new Date(task.dueDate).toLocaleDateString('pt-BR')}
+                                  </span>
+                                )}
+                              </div>
+                              {/* Tags */}
+                              {task.tags && task.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                  {task.tags.map((tag, index) => (
+                                    <span
+                                      key={index}
+                                      className="inline-flex items-center gap-1 text-xs px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-full"
+                                    >
+                                      <Tag className="h-2.5 w-2.5" />
+                                      {tag}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-1 ml-2">
+                            {!task.completed && (
+                              <>
+                                <button
+                                  onClick={() => startTimerForTask(task.id)}
+                                  className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                  title="Iniciar Pomodoro para esta tarefa"
+                                >
+                                  <Timer className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => startEditing(task)}
+                                  className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+                                  title="Editar tarefa"
+                                >
+                                  <Edit3 className="h-4 w-4" />
+                                </button>
+                              </>
+                            )}
+                            <button
+                              onClick={() => deleteTask(task.id)}
+                              className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Excluir tarefa"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -617,9 +856,18 @@ export default function Dashboard() {
           {/* Progress Card - Fourth on mobile */}
           <div className="order-4">
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-5 sm:p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Progresso de Hoje
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-indigo-600" />
+                  Progresso
+                </h2>
+                <button
+                  onClick={() => setShowAnalytics(!showAnalytics)}
+                  className="text-xs text-indigo-600 hover:text-indigo-700 font-medium"
+                >
+                  {showAnalytics ? 'Menos' : 'Mais'}
+                </button>
+              </div>
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between text-sm text-gray-600 mb-2">
@@ -660,6 +908,77 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </div>
+
+                {/* Extended Analytics */}
+                {showAnalytics && (
+                  <>
+                    {/* Por Categoria */}
+                    <div className="pt-4 border-t border-gray-100">
+                      <h3 className="text-sm font-semibold text-gray-700 mb-3">Por Categoria</h3>
+                      <div className="space-y-2">
+                        {CATEGORIES.map(cat => {
+                          const catTasks = tasks.filter(t => t.category === cat.id);
+                          const catCompleted = catTasks.filter(t => t.completed).length;
+                          if (catTasks.length === 0) return null;
+                          return (
+                            <div key={cat.id} className="flex justify-between items-center">
+                              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${cat.color}`}>
+                                {cat.name}
+                              </span>
+                              <span className="text-sm text-gray-600">{catCompleted}/{catTasks.length}</span>
+                            </div>
+                          );
+                        })}
+                        {tasks.filter(t => !t.category).length > 0 && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                              Sem categoria
+                            </span>
+                            <span className="text-sm text-gray-600">
+                              {tasks.filter(t => !t.category && t.completed).length}/{tasks.filter(t => !t.category).length}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Tempo Estimado */}
+                    <div className="pt-4 border-t border-gray-100">
+                      <h3 className="text-sm font-semibold text-gray-700 mb-3">Tempo Total</h3>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-indigo-50 rounded-lg p-3 text-center">
+                          <p className="text-2xl font-bold text-indigo-600">
+                            {Math.round(tasks.filter(t => !t.completed).reduce((acc, t) => acc + (t.estimatedTime || 0), 0) / 60 * 10) / 10}h
+                          </p>
+                          <p className="text-xs text-indigo-600">Pendente</p>
+                        </div>
+                        <div className="bg-emerald-50 rounded-lg p-3 text-center">
+                          <p className="text-2xl font-bold text-emerald-600">
+                            {Math.round(tasks.filter(t => t.completed).reduce((acc, t) => acc + (t.estimatedTime || 0), 0) / 60 * 10) / 10}h
+                          </p>
+                          <p className="text-xs text-emerald-600">Concluído</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Tags mais usadas */}
+                    {tasks.some(t => t.tags && t.tags.length > 0) && (
+                      <div className="pt-4 border-t border-gray-100">
+                        <h3 className="text-sm font-semibold text-gray-700 mb-3">Tags Populares</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {Array.from(new Set(tasks.flatMap(t => t.tags || []))).slice(0, 6).map((tag, i) => (
+                            <span
+                              key={i}
+                              className="text-xs px-2 py-1 bg-indigo-50 text-indigo-600 rounded-full"
+                            >
+                              {tag} ({tasks.filter(t => t.tags?.includes(tag)).length})
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           </div>
