@@ -1,9 +1,9 @@
-'use client';
+'use client'
 
-import { useSession, signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState, useCallback } from "react";
-import Image from "next/image";
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { useSession, signOut } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { 
   Calendar, 
   LogOut, 
@@ -101,6 +101,16 @@ export default function Dashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
   
+  // Refs to store latest session data
+  const sessionRef = useRef(session);
+  const statusRef = useRef(status);
+  
+  // Update refs when session or status changes
+  useEffect(() => {
+    sessionRef.current = session;
+    statusRef.current = status;
+  }, [session, status]);
+  
   // Core state
   const [tasks, setTasks] = useState<Task[]>([]);
   const [googleTasks, setGoogleTasks] = useState<GoogleTask[]>([]);
@@ -129,39 +139,67 @@ export default function Dashboard() {
   // Fetch Google Tasks
   const fetchGoogleTasks = useCallback(async () => {
     // Only fetch if we have a valid session
-    if (status !== 'authenticated' || !session?.accessToken) return;
+    console.log('Checking session for Google Tasks:', { status: statusRef.current, accessToken: !!sessionRef.current?.accessToken });
+    if (statusRef.current !== 'authenticated' || !sessionRef.current?.accessToken) {
+      console.log('Skipping Google Tasks fetch - not authenticated');
+      return;
+    }
     
     try {
+      console.log('Fetching Google Tasks...');
       const response = await fetch('/api/google-tasks');
+      console.log('Google Tasks response status:', response.status);
       if (response.ok) {
         const data = await response.json();
         setGoogleTasks(data.tasks || []);
+        console.log('Google Tasks fetched successfully:', data.tasks?.length || 0);
+      } else {
+        console.error('Failed to fetch Google Tasks:', response.status);
+        // Handle unauthorized specifically
+        if (response.status === 401) {
+          console.log('Session expired or invalid, signing out...');
+          signOut({ callbackUrl: '/' });
+        }
       }
     } catch (error) {
       console.error('Error fetching Google Tasks:', error);
     }
-  }, [session?.accessToken, status]);
+  }, []);
 
   // Fetch Calendar Events
   const fetchCalendarEvents = useCallback(async () => {
     // Only fetch if we have a valid session
-    if (status !== 'authenticated' || !session?.accessToken) return;
+    console.log('Checking session for Calendar Events:', { status: statusRef.current, accessToken: !!sessionRef.current?.accessToken });
+    if (statusRef.current !== 'authenticated' || !sessionRef.current?.accessToken) {
+      console.log('Skipping Calendar Events fetch - not authenticated');
+      return;
+    }
     
     try {
+      console.log('Fetching Calendar Events...');
       const response = await fetch('/api/calendar?maxResults=20');
+      console.log('Calendar Events response status:', response.status);
       if (response.ok) {
         const data = await response.json();
         setCalendarEvents(data.events || []);
+        console.log('Calendar Events fetched successfully:', data.events?.length || 0);
+      } else {
+        console.error('Failed to fetch Calendar Events:', response.status);
+        // Handle unauthorized specifically
+        if (response.status === 401) {
+          console.log('Session expired or invalid, signing out...');
+          signOut({ callbackUrl: '/' });
+        }
       }
     } catch (error) {
       console.error('Error fetching calendar events:', error);
     }
-  }, [session?.accessToken, status]);
+  }, []);
 
   // Sync all Google data
   const syncGoogleData = async () => {
     // Only sync if we have a valid session
-    if (status !== 'authenticated' || !session?.accessToken) return;
+    if (statusRef.current !== 'authenticated' || !sessionRef.current?.accessToken) return;
     
     setIsSyncing(true);
     try {
@@ -201,9 +239,24 @@ export default function Dashboard() {
 
   // Fetch Google data only when session is fully authenticated
   useEffect(() => {
+    console.log('Session status changed:', status);
+    console.log('Session data:', session ? 'Available' : 'Not available');
+    console.log('Access token:', session?.accessToken ? 'Available' : 'Not available');
+    
+    // Only attempt to fetch data when fully authenticated
     if (status === 'authenticated' && session?.accessToken) {
-      fetchGoogleTasks();
-      fetchCalendarEvents();
+      console.log('Session authenticated, fetching Google data...');
+      // Add a small delay to ensure everything is properly initialized
+      const timer = setTimeout(() => {
+        fetchGoogleTasks();
+        fetchCalendarEvents();
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    } else if (status === 'loading') {
+      console.log('Session still loading, waiting...');
+    } else if (status === 'unauthenticated') {
+      console.log('User not authenticated, redirecting...');
     }
   }, [status, session?.accessToken, fetchGoogleTasks, fetchCalendarEvents]);
 
@@ -239,6 +292,12 @@ export default function Dashboard() {
   };
 
   const createCalendarEvent = async (task: Task) => {
+    // Check if we have a valid session before making the request
+    if (statusRef.current !== 'authenticated' || !sessionRef.current?.accessToken) {
+      console.log('Cannot create calendar event - not authenticated');
+      return;
+    }
+    
     if (!task.dueDate) return;
     
     try {
@@ -274,6 +333,12 @@ export default function Dashboard() {
   };
 
   const createGoogleTask = async (task: Task) => {
+    // Check if we have a valid session before making the request
+    if (statusRef.current !== 'authenticated' || !sessionRef.current?.accessToken) {
+      console.log('Cannot create Google task - not authenticated');
+      return null;
+    }
+    
     try {
       const response = await fetch('/api/google-tasks', {
         method: 'POST',
@@ -382,6 +447,12 @@ export default function Dashboard() {
   };
 
   const toggleGoogleTask = async (taskId: string, currentStatus: string) => {
+    // Check if we have a valid session before making the request
+    if (statusRef.current !== 'authenticated' || !sessionRef.current?.accessToken) {
+      console.log('Cannot toggle Google task - not authenticated');
+      return;
+    }
+    
     try {
       const newStatus = currentStatus === 'completed' ? 'needsAction' : 'completed';
       await fetch('/api/google-tasks', {
@@ -409,6 +480,12 @@ export default function Dashboard() {
   };
 
   const deleteGoogleTask = async (taskId: string) => {
+    // Check if we have a valid session before making the request
+    if (statusRef.current !== 'authenticated' || !sessionRef.current?.accessToken) {
+      console.log('Cannot delete Google task - not authenticated');
+      return;
+    }
+    
     try {
       await fetch(`/api/google-tasks?taskId=${taskId}`, { method: 'DELETE' });
       fetchGoogleTasks();
