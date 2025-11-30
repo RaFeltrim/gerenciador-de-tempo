@@ -3,12 +3,16 @@ import { NextRequest } from 'next/server';
 // Natural Language Processing for task parsing
 // Parses Portuguese natural language to extract structured task data
 
+type RecurrencePattern = 'daily' | 'weekly' | 'monthly' | 'weekdays' | null;
+
 interface ParsedTask {
   title: string;
   description: string;
   dueDate: string | null;
   priority: 'high' | 'medium' | 'low';
   estimatedTime: number | null;
+  isRecurring: boolean;
+  recurrencePattern: RecurrencePattern;
 }
 
 function extractPriority(text: string): 'high' | 'medium' | 'low' {
@@ -217,8 +221,81 @@ function extractTime(text: string): number | null {
   return found ? totalMinutes : null;
 }
 
+function extractRecurrence(text: string): { isRecurring: boolean; pattern: RecurrencePattern } {
+  const lowerText = text.toLowerCase();
+  
+  // Daily patterns (Portuguese and English)
+  const dailyPatterns = [
+    'todo dia', 'todos os dias', 'diariamente', 'diário', 'diaria',
+    'every day', 'daily', 'cada dia'
+  ];
+  
+  // Weekly patterns
+  const weeklyPatterns = [
+    'toda semana', 'todas as semanas', 'semanalmente', 'semanal',
+    'every week', 'weekly', 'cada semana'
+  ];
+  
+  // Monthly patterns
+  const monthlyPatterns = [
+    'todo mês', 'todos os meses', 'mensalmente', 'mensal',
+    'every month', 'monthly', 'cada mês'
+  ];
+  
+  // Weekdays patterns
+  const weekdaysPatterns = [
+    'dias úteis', 'dias uteis', 'dia útil', 'dia util',
+    'de segunda a sexta', 'segunda a sexta', 'weekdays',
+    'todos os dias úteis', 'todos os dias uteis'
+  ];
+  
+  // Specific day patterns (treat as weekly recurrence)
+  const specificDayPatterns = [
+    'toda segunda', 'toda terça', 'toda terca', 'toda quarta',
+    'toda quinta', 'toda sexta', 'todo sábado', 'todo sabado',
+    'todo domingo', 'todas as segundas', 'todas as terças',
+    'todas as tercas', 'todas as quartas', 'todas as quintas',
+    'todas as sextas', 'todos os sábados', 'todos os sabados',
+    'todos os domingos', 'every monday', 'every tuesday',
+    'every wednesday', 'every thursday', 'every friday',
+    'every saturday', 'every sunday'
+  ];
+  
+  for (const pattern of dailyPatterns) {
+    if (lowerText.includes(pattern)) {
+      return { isRecurring: true, pattern: 'daily' };
+    }
+  }
+  
+  for (const pattern of weekdaysPatterns) {
+    if (lowerText.includes(pattern)) {
+      return { isRecurring: true, pattern: 'weekdays' };
+    }
+  }
+  
+  for (const pattern of weeklyPatterns) {
+    if (lowerText.includes(pattern)) {
+      return { isRecurring: true, pattern: 'weekly' };
+    }
+  }
+  
+  for (const pattern of specificDayPatterns) {
+    if (lowerText.includes(pattern)) {
+      return { isRecurring: true, pattern: 'weekly' };
+    }
+  }
+  
+  for (const pattern of monthlyPatterns) {
+    if (lowerText.includes(pattern)) {
+      return { isRecurring: true, pattern: 'monthly' };
+    }
+  }
+  
+  return { isRecurring: false, pattern: null };
+}
+
 function extractTitle(text: string): string {
-  // Remove time, date, and priority indicators for cleaner title
+  // Remove time, date, priority, and recurrence indicators for cleaner title
   let title = text;
   
   // Remove common patterns
@@ -229,6 +306,18 @@ function extractTitle(text: string): string {
     /\b(às|as)\s+\d{1,2}(:\d{2})?\s*(h|horas)?\b/gi,
     /\d{1,2}\/\d{1,2}(\/\d{4})?/g,
     /!+/g,
+    // Recurrence patterns
+    /\b(todo dia|todos os dias|diariamente|diário|diaria)\b/gi,
+    /\b(toda semana|todas as semanas|semanalmente|semanal)\b/gi,
+    /\b(todo mês|todos os meses|mensalmente|mensal)\b/gi,
+    /\b(dias úteis|dias uteis|dia útil|dia util)\b/gi,
+    /\b(de segunda a sexta|segunda a sexta)\b/gi,
+    /\b(toda segunda|toda terça|toda terca|toda quarta|toda quinta|toda sexta)\b/gi,
+    /\b(todo sábado|todo sabado|todo domingo)\b/gi,
+    /\b(todas as segundas|todas as terças|todas as tercas|todas as quartas)\b/gi,
+    /\b(todas as quintas|todas as sextas|todos os sábados|todos os sabados|todos os domingos)\b/gi,
+    /\b(every day|daily|every week|weekly|every month|monthly|weekdays)\b/gi,
+    /\b(cada dia|cada semana|cada mês)\b/gi,
   ];
   
   for (const pattern of patternsToRemove) {
@@ -266,12 +355,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse the natural language task
+    const recurrence = extractRecurrence(taskText);
     const parsedTask: ParsedTask = {
       title: extractTitle(taskText),
       description: taskText,
       dueDate: extractDate(taskText),
       priority: extractPriority(taskText),
       estimatedTime: extractTime(taskText),
+      isRecurring: recurrence.isRecurring,
+      recurrencePattern: recurrence.pattern,
     };
 
     return new Response(JSON.stringify(parsedTask), {

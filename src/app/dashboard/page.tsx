@@ -20,8 +20,10 @@ import {
   Edit3,
   X,
   Save,
-  BarChart3
+  BarChart3,
+  Repeat
 } from "lucide-react";
+import { calculateNextDueDate, getRecurrenceLabel, RecurrencePattern } from "../../lib/task-utils";
 
 // Constants
 const DEFAULT_EVENT_DURATION_MINUTES = 60;
@@ -49,6 +51,9 @@ interface Task {
   createdAt: string;
   category?: string | null;
   tags?: string[];
+  isRecurring?: boolean;
+  recurrencePattern?: RecurrencePattern | null;
+  parentTaskId?: string | null;
 }
 
 // Helper function to check if description is essentially the same as title
@@ -229,6 +234,9 @@ export default function Dashboard() {
       createdAt: new Date().toISOString(),
       category: selectedCategory || null,
       tags: tags,
+      isRecurring: parsedTask?.isRecurring || false,
+      recurrencePattern: parsedTask?.recurrencePattern || null,
+      parentTaskId: null,
     };
     
     setTasks((prev) => [...prev, newTask]);
@@ -246,11 +254,40 @@ export default function Dashboard() {
   };
 
   const toggleTask = (id: string) => {
-    setTasks((prev) =>
-      prev.map((task) =>
+    setTasks((prev) => {
+      const taskToToggle = prev.find(t => t.id === id);
+      if (!taskToToggle) return prev;
+      
+      // If completing a recurring task, create the next occurrence
+      if (!taskToToggle.completed && taskToToggle.isRecurring && taskToToggle.recurrencePattern) {
+        const nextDueDate = calculateNextDueDate(taskToToggle.dueDate, taskToToggle.recurrencePattern);
+        const nextTask: Task = {
+          id: crypto.randomUUID(),
+          title: taskToToggle.title,
+          description: taskToToggle.description,
+          priority: taskToToggle.priority,
+          estimatedTime: taskToToggle.estimatedTime,
+          dueDate: nextDueDate,
+          completed: false,
+          createdAt: new Date().toISOString(),
+          category: taskToToggle.category,
+          tags: taskToToggle.tags,
+          isRecurring: true,
+          recurrencePattern: taskToToggle.recurrencePattern,
+          parentTaskId: taskToToggle.parentTaskId || taskToToggle.id, // Link to master task
+        };
+        
+        // Mark current as completed and add the new occurrence
+        return prev.map((task) =>
+          task.id === id ? { ...task, completed: true } : task
+        ).concat(nextTask);
+      }
+      
+      // Regular toggle for non-recurring tasks
+      return prev.map((task) =>
         task.id === id ? { ...task, completed: !task.completed } : task
-      )
-    );
+      );
+    });
   };
 
   const deleteTask = (id: string) => {
@@ -279,6 +316,8 @@ export default function Dashboard() {
       dueDate: task.dueDate,
       category: task.category,
       tags: task.tags,
+      isRecurring: task.isRecurring,
+      recurrencePattern: task.recurrencePattern,
     });
   };
 
@@ -787,6 +826,42 @@ export default function Dashboard() {
                               </div>
                             </div>
                             
+                            {/* Recurrence */}
+                            <div className="flex flex-wrap gap-4">
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  id={`edit-recurring-${task.id}`}
+                                  checked={editForm.isRecurring || false}
+                                  onChange={(e) => setEditForm({ 
+                                    ...editForm, 
+                                    isRecurring: e.target.checked,
+                                    recurrencePattern: e.target.checked ? (editForm.recurrencePattern || 'daily') : null
+                                  })}
+                                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                />
+                                <label htmlFor={`edit-recurring-${task.id}`} className="text-sm font-semibold text-gray-700 flex items-center gap-1">
+                                  <Repeat className="h-4 w-4" />
+                                  Tarefa Recorrente
+                                </label>
+                              </div>
+                              {editForm.isRecurring && (
+                                <div className="flex-1 min-w-[140px]">
+                                  <select
+                                    id={`edit-recurrence-${task.id}`}
+                                    value={editForm.recurrencePattern || 'daily'}
+                                    onChange={(e) => setEditForm({ ...editForm, recurrencePattern: e.target.value as Task['recurrencePattern'] })}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-gray-900"
+                                  >
+                                    <option value="daily">Diário</option>
+                                    <option value="weekdays">Dias úteis</option>
+                                    <option value="weekly">Semanal</option>
+                                    <option value="monthly">Mensal</option>
+                                  </select>
+                                </div>
+                              )}
+                            </div>
+                            
                             {/* Tags */}
                             <div>
                               <label htmlFor={`edit-tags-${task.id}`} className="block text-sm font-semibold text-gray-700 mb-1">
@@ -872,6 +947,12 @@ export default function Dashboard() {
                                   <Flag className="h-3 w-3" />
                                   {task.priority === 'high' ? 'Alta' : task.priority === 'medium' ? 'Média' : 'Baixa'}
                                 </span>
+                                {task.isRecurring && task.recurrencePattern && (
+                                  <span className="flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-violet-100 text-violet-700">
+                                    <Repeat className="h-3 w-3" />
+                                    {getRecurrenceLabel(task.recurrencePattern)}
+                                  </span>
+                                )}
                                 {categoryInfo && (
                                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${categoryInfo.color}`}>
                                     {categoryInfo.name}

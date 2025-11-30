@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { calculateNextDueDate } from './task-utils';
 
 // Supabase configuration - configure via environment variables
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -38,6 +39,9 @@ export interface DbTask {
   completed: boolean;
   category: string | null;
   tags: string[];
+  is_recurring: boolean;
+  recurrence_pattern: 'daily' | 'weekly' | 'monthly' | 'weekdays' | null;
+  parent_task_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -132,5 +136,43 @@ export const taskOperations = {
   // Toggle task completion
   async toggleTaskCompletion(id: string, userEmail: string, completed: boolean): Promise<DbTask | null> {
     return this.updateTask(id, userEmail, { completed });
+  },
+
+  // Complete a recurring task and create next occurrence
+  async completeRecurringTask(task: DbTask): Promise<{ completedTask: DbTask | null; nextTask: DbTask | null }> {
+    const client = getSupabaseClient();
+    if (!client) return { completedTask: null, nextTask: null };
+
+    // Mark current task as completed
+    const completedTask = await this.updateTask(task.id, task.user_email, { completed: true });
+    if (!completedTask) return { completedTask: null, nextTask: null };
+
+    // If not recurring or no pattern, just return the completed task
+    if (!task.is_recurring || !task.recurrence_pattern) {
+      return { completedTask, nextTask: null };
+    }
+
+    // Calculate next due date
+    const nextDueDate = calculateNextDueDate(task.due_date, task.recurrence_pattern);
+    if (!nextDueDate) return { completedTask, nextTask: null };
+
+    // Create new task instance for next occurrence
+    const nextTask = await this.createTask({
+      id: crypto.randomUUID(),
+      user_email: task.user_email,
+      title: task.title,
+      description: task.description,
+      priority: task.priority,
+      estimated_time: task.estimated_time,
+      due_date: nextDueDate,
+      completed: false,
+      category: task.category,
+      tags: task.tags,
+      is_recurring: true,
+      recurrence_pattern: task.recurrence_pattern,
+      parent_task_id: task.parent_task_id || task.id, // Link to original master task
+    });
+
+    return { completedTask, nextTask };
   },
 };
