@@ -13,6 +13,9 @@ CREATE TABLE IF NOT EXISTS public.tasks (
   completed BOOLEAN DEFAULT FALSE,
   category TEXT,
   tags TEXT[] DEFAULT '{}',
+  is_recurring BOOLEAN DEFAULT FALSE,
+  recurrence_pattern TEXT CHECK (recurrence_pattern IN ('daily', 'weekly', 'monthly', 'weekdays') OR recurrence_pattern IS NULL),
+  parent_task_id UUID REFERENCES public.tasks(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -22,6 +25,8 @@ CREATE INDEX IF NOT EXISTS idx_tasks_user_email ON public.tasks(user_email);
 CREATE INDEX IF NOT EXISTS idx_tasks_completed ON public.tasks(completed);
 CREATE INDEX IF NOT EXISTS idx_tasks_priority ON public.tasks(priority);
 CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON public.tasks(due_date);
+CREATE INDEX IF NOT EXISTS idx_tasks_is_recurring ON public.tasks(is_recurring);
+CREATE INDEX IF NOT EXISTS idx_tasks_parent_task_id ON public.tasks(parent_task_id);
 
 -- Enable Row Level Security (RLS)
 ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
@@ -61,3 +66,13 @@ CREATE TRIGGER update_tasks_updated_at
 -- Grant permissions for anonymous access (for testing)
 GRANT ALL ON public.tasks TO anon;
 GRANT ALL ON public.tasks TO authenticated;
+
+-- =====================================================
+-- MIGRATION: Add recurring tasks support
+-- Run this section ONLY if upgrading an existing database
+-- =====================================================
+-- ALTER TABLE public.tasks ADD COLUMN IF NOT EXISTS is_recurring BOOLEAN DEFAULT FALSE;
+-- ALTER TABLE public.tasks ADD COLUMN IF NOT EXISTS recurrence_pattern TEXT CHECK (recurrence_pattern IN ('daily', 'weekly', 'monthly', 'weekdays') OR recurrence_pattern IS NULL);
+-- ALTER TABLE public.tasks ADD COLUMN IF NOT EXISTS parent_task_id UUID REFERENCES public.tasks(id) ON DELETE SET NULL;
+-- CREATE INDEX IF NOT EXISTS idx_tasks_is_recurring ON public.tasks(is_recurring);
+-- CREATE INDEX IF NOT EXISTS idx_tasks_parent_task_id ON public.tasks(parent_task_id);

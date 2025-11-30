@@ -38,6 +38,9 @@ export interface DbTask {
   completed: boolean;
   category: string | null;
   tags: string[];
+  is_recurring: boolean;
+  recurrence_pattern: 'daily' | 'weekly' | 'monthly' | 'weekdays' | null;
+  parent_task_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -133,4 +136,70 @@ export const taskOperations = {
   async toggleTaskCompletion(id: string, userEmail: string, completed: boolean): Promise<DbTask | null> {
     return this.updateTask(id, userEmail, { completed });
   },
+
+  // Complete a recurring task and create next occurrence
+  async completeRecurringTask(task: DbTask): Promise<{ completedTask: DbTask | null; nextTask: DbTask | null }> {
+    const client = getSupabaseClient();
+    if (!client) return { completedTask: null, nextTask: null };
+
+    // Mark current task as completed
+    const completedTask = await this.updateTask(task.id, task.user_email, { completed: true });
+    if (!completedTask) return { completedTask: null, nextTask: null };
+
+    // If not recurring or no pattern, just return the completed task
+    if (!task.is_recurring || !task.recurrence_pattern) {
+      return { completedTask, nextTask: null };
+    }
+
+    // Calculate next due date
+    const nextDueDate = calculateNextDueDate(task.due_date, task.recurrence_pattern);
+    if (!nextDueDate) return { completedTask, nextTask: null };
+
+    // Create new task instance for next occurrence
+    const nextTask = await this.createTask({
+      id: crypto.randomUUID(),
+      user_email: task.user_email,
+      title: task.title,
+      description: task.description,
+      priority: task.priority,
+      estimated_time: task.estimated_time,
+      due_date: nextDueDate,
+      completed: false,
+      category: task.category,
+      tags: task.tags,
+      is_recurring: true,
+      recurrence_pattern: task.recurrence_pattern,
+      parent_task_id: task.parent_task_id || task.id, // Link to original master task
+    });
+
+    return { completedTask, nextTask };
+  },
 };
+
+// Helper function to calculate next due date based on recurrence pattern
+export function calculateNextDueDate(currentDueDate: string | null, pattern: 'daily' | 'weekly' | 'monthly' | 'weekdays'): string | null {
+  const baseDate = currentDueDate ? new Date(currentDueDate) : new Date();
+  const nextDate = new Date(baseDate);
+
+  switch (pattern) {
+    case 'daily':
+      nextDate.setDate(nextDate.getDate() + 1);
+      break;
+    case 'weekly':
+      nextDate.setDate(nextDate.getDate() + 7);
+      break;
+    case 'monthly':
+      nextDate.setMonth(nextDate.getMonth() + 1);
+      break;
+    case 'weekdays':
+      // Move to next weekday
+      do {
+        nextDate.setDate(nextDate.getDate() + 1);
+      } while (nextDate.getDay() === 0 || nextDate.getDay() === 6);
+      break;
+    default:
+      return null;
+  }
+
+  return nextDate.toISOString();
+}
