@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../lib/auth';
 import { taskOperations, isSupabaseConfigured } from '../../../lib/supabase';
+import { validateISODateString } from '../../../lib/date-validation';
 
 // GET /api/tasks - Get all tasks for the current user
 export async function GET() {
@@ -48,6 +49,14 @@ export async function POST(request: NextRequest) {
 
     if (!title) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+    }
+
+    // Validate the due date if provided
+    const dateValidation = validateISODateString(dueDate);
+    if (!dateValidation.valid) {
+      return NextResponse.json({ 
+        error: dateValidation.error || 'A data inserida não existe no calendário (ex: 31 de Novembro).'
+      }, { status: 400 });
     }
 
     const task = await taskOperations.createTask({
@@ -98,6 +107,16 @@ export async function PUT(request: NextRequest) {
 
     if (!id) {
       return NextResponse.json({ error: 'Task ID is required' }, { status: 400 });
+    }
+
+    // Validate the due date if being updated
+    if (updates.dueDate !== undefined) {
+      const dateValidation = validateISODateString(updates.dueDate);
+      if (!dateValidation.valid) {
+        return NextResponse.json({ 
+          error: dateValidation.error || 'A data inserida não existe no calendário (ex: 31 de Novembro).'
+        }, { status: 400 });
+      }
     }
 
     // Map frontend field names to database field names
