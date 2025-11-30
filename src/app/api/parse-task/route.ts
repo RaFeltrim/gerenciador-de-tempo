@@ -46,16 +46,43 @@ function extractDate(text: string): string | null {
   const lowerText = text.toLowerCase();
   const now = new Date();
   
+  // Helper function to extract time from text
+  const extractTimeFromText = (baseDate: Date): Date => {
+    // Match patterns like "às 14h", "as 14:30", "14h30", "14:30", "às 14 horas"
+    const timePatterns = [
+      /(?:às|as)\s*(\d{1,2})(?::(\d{2}))?\s*(?:h|horas)?/i,
+      /(\d{1,2}):(\d{2})/,
+      /(\d{1,2})h(\d{2})?/i,
+    ];
+    
+    for (const pattern of timePatterns) {
+      const match = text.match(pattern);
+      if (match) {
+        const hours = parseInt(match[1]);
+        const minutes = match[2] ? parseInt(match[2]) : 0;
+        if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
+          baseDate.setHours(hours, minutes, 0, 0);
+          return baseDate;
+        }
+      }
+    }
+    
+    // Default to 9:00 AM if no time specified
+    baseDate.setHours(9, 0, 0, 0);
+    return baseDate;
+  };
+  
   // Check for "hoje" (today)
   if (lowerText.includes('hoje')) {
-    return now.toISOString();
+    const today = new Date(now);
+    return extractTimeFromText(today).toISOString();
   }
   
   // Check for "amanhã" (tomorrow)
   if (lowerText.includes('amanhã') || lowerText.includes('amanha')) {
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString();
+    return extractTimeFromText(tomorrow).toISOString();
   }
   
   // Check for days of the week
@@ -80,7 +107,7 @@ function extractDate(text: string): string | null {
       }
       const targetDate = new Date(now);
       targetDate.setDate(targetDate.getDate() + daysUntil);
-      return targetDate.toISOString();
+      return extractTimeFromText(targetDate).toISOString();
     }
   }
   
@@ -88,7 +115,7 @@ function extractDate(text: string): string | null {
   if (lowerText.includes('próxima semana') || lowerText.includes('proxima semana')) {
     const nextWeek = new Date(now);
     nextWeek.setDate(nextWeek.getDate() + 7);
-    return nextWeek.toISOString();
+    return extractTimeFromText(nextWeek).toISOString();
   }
   
   // Check for date patterns like "dia 15", "15/12", "15/12/2024"
@@ -106,7 +133,7 @@ function extractDate(text: string): string | null {
         const month = parseInt(match[2]) - 1;
         const year = match[3] ? parseInt(match[3]) : now.getFullYear();
         const date = new Date(year, month, day);
-        return date.toISOString();
+        return extractTimeFromText(date).toISOString();
       } else if (match[1]) {
         // "dia X" format - safely handle month rollover
         const day = parseInt(match[1]);
@@ -132,7 +159,7 @@ function extractDate(text: string): string | null {
           return null; // Invalid day for this month
         }
         
-        return date.toISOString();
+        return extractTimeFromText(date).toISOString();
       }
     }
   }
