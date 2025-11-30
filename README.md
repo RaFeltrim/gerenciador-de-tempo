@@ -42,8 +42,8 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your_nextauth_secret
 
-# Supabase (optional for future use)
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+# Supabase Configuration (required for task persistence)
+NEXT_PUBLIC_SUPABASE_URL=https://bzuvzfodrtvebnrlljtk.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # AI Provider (choose one)
@@ -52,7 +52,13 @@ OPENAI_API_KEY=your_openai_api_key
 GEMINI_API_KEY=your_gemini_api_key
 ```
 
-### 3. Installation
+### 3. Supabase Setup
+
+1. The project uses Supabase for task persistence
+2. Run the SQL schema in `supabase-schema.sql` in your Supabase SQL Editor to create the tasks table
+3. Make sure to set the environment variables with your Supabase credentials
+
+### 4. Installation
 
 ```bash
 npm install
@@ -97,6 +103,12 @@ Handles authentication flows with Google OAuth.
 ### `/api/parse-task`
 Accepts natural language task descriptions and returns structured task data using AI.
 
+### `/api/tasks`
+CRUD operations for tasks (requires Supabase configuration).
+
+### `/api/calendar`
+Create and manage events in Google Calendar.
+
 ## Libraries Used
 
 - [Next.js 14](https://nextjs.org/) - React framework
@@ -104,12 +116,23 @@ Accepts natural language task descriptions and returns structured task data usin
 - [Tailwind CSS](https://tailwindcss.com/) - Styling framework
 - [Lucide React](https://lucide.dev/) - Icon library
 - [Google APIs](https://github.com/googleapis/google-api-nodejs-client) - Google Calendar integration
-- [Supabase](https://supabase.io/) - Database (future implementation)
+- [Supabase](https://supabase.io/) - Database for task persistence
+
+## Features Implemented
+
+- ✅ Integration with Supabase for task storage (with localStorage fallback)
+- ✅ Task categorization (Work, Personal, Study, Health, Finance, Other)
+- ✅ Task tagging system
+- ✅ Task editing functionality
+- ✅ Focus timer (Pomodoro) functionality
+- ✅ Progress tracking and analytics
+- ✅ Google Calendar integration
+- ✅ Natural language task parsing
 
 ## Future Enhancements
 
-- Integration with Supabase for task storage
 - Advanced NLP processing with OpenAI/Gemini
-- Task categorization and tagging
-- Focus timer functionality
-- Progress tracking and analytics
+- Task reminders and notifications
+- Recurring tasks
+- Team collaboration features
+- Mobile app
