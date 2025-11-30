@@ -366,7 +366,19 @@ export default function Dashboard() {
     return isSameDay(date, new Date());
   };
 
-  const getCalendarDays = () => {
+  interface CalendarDay {
+    date: Date;
+    dayNumber: number;
+    isCurrentMonth: boolean;
+    hasEvent: boolean;
+  }
+
+  // Helper function to check if a date has any scheduled tasks
+  const hasTasksOnDate = (date: Date): boolean => {
+    return tasks.some(task => task.dueDate && isSameDay(new Date(task.dueDate), date));
+  };
+
+  const getCalendarDays = (): CalendarDay[] => {
     const year = calendarMonth.getFullYear();
     const month = calendarMonth.getMonth();
     
@@ -375,16 +387,46 @@ export default function Dashboard() {
     const startingDayOfWeek = firstDay.getDay();
     const daysInMonth = lastDay.getDate();
     
-    const days: (Date | null)[] = [];
+    // Get days from previous month to fill the first week
+    const prevMonthLastDay = new Date(year, month, 0);
+    const daysFromPrevMonth = prevMonthLastDay.getDate();
     
-    // Add empty slots for days before the first day of the month
-    for (let i = 0; i < startingDayOfWeek; i++) {
-      days.push(null);
+    const days: CalendarDay[] = [];
+    
+    // Add days from previous month
+    for (let i = startingDayOfWeek - 1; i >= 0; i--) {
+      const day = daysFromPrevMonth - i;
+      const date = new Date(year, month - 1, day);
+      days.push({
+        date,
+        dayNumber: day,
+        isCurrentMonth: false,
+        hasEvent: hasTasksOnDate(date)
+      });
     }
     
-    // Add all days of the month
+    // Add all days of the current month
     for (let day = 1; day <= daysInMonth; day++) {
-      days.push(new Date(year, month, day));
+      const date = new Date(year, month, day);
+      days.push({
+        date,
+        dayNumber: day,
+        isCurrentMonth: true,
+        hasEvent: hasTasksOnDate(date)
+      });
+    }
+    
+    // Add days from next month to complete the grid (fill to 35 or 42 cells)
+    const totalCells = days.length <= 35 ? 35 : 42;
+    const remainingDays = totalCells - days.length;
+    for (let day = 1; day <= remainingDays; day++) {
+      const date = new Date(year, month + 1, day);
+      days.push({
+        date,
+        dayNumber: day,
+        isCurrentMonth: false,
+        hasEvent: hasTasksOnDate(date)
+      });
     }
     
     return days;
@@ -662,69 +704,116 @@ export default function Dashboard() {
                       return (
                         <div
                           key={task.id}
-                          className="border rounded-xl p-4 bg-indigo-50 border-indigo-200"
+                          className="border rounded-xl p-5 bg-indigo-50 border-indigo-200"
                         >
-                          <div className="space-y-3">
-                            <input
-                              type="text"
-                              value={editForm.title || ''}
-                              onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                              placeholder="Título da tarefa"
-                            />
-                            <textarea
-                              value={editForm.description || ''}
-                              onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-none"
-                              placeholder="Descrição"
-                              rows={2}
-                            />
-                            <div className="flex flex-wrap gap-2">
-                              <select
-                                value={editForm.priority || 'medium'}
-                                onChange={(e) => setEditForm({ ...editForm, priority: e.target.value as Task['priority'] })}
-                                className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
-                              >
-                                <option value="high">Alta</option>
-                                <option value="medium">Média</option>
-                                <option value="low">Baixa</option>
-                              </select>
-                              <select
-                                value={editForm.category || ''}
-                                onChange={(e) => setEditForm({ ...editForm, category: e.target.value || null })}
-                                className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
-                              >
-                                <option value="">Sem categoria</option>
-                                {CATEGORIES.map(cat => (
-                                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                ))}
-                              </select>
+                          <div className="space-y-4">
+                            {/* Título */}
+                            <div>
+                              <label htmlFor={`edit-title-${task.id}`} className="block text-sm font-semibold text-gray-700 mb-1">
+                                Título
+                              </label>
                               <input
-                                type="number"
-                                value={editForm.estimatedTime || ''}
-                                onChange={(e) => setEditForm({ ...editForm, estimatedTime: e.target.value ? parseInt(e.target.value) : null })}
-                                placeholder="Tempo (min)"
-                                className="w-24 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                                id={`edit-title-${task.id}`}
+                                type="text"
+                                value={editForm.title || ''}
+                                onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none font-medium text-gray-900"
+                                placeholder="Digite o título da tarefa"
                               />
                             </div>
-                            <input
-                              type="text"
-                              value={editForm.tags?.join(', ') || ''}
-                              onChange={(e) => setEditForm({ ...editForm, tags: e.target.value.split(',').map(t => t.trim()).filter(t => t) })}
-                              placeholder="Tags (separadas por vírgula)"
-                              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-                            />
-                            <div className="flex justify-end gap-2">
+                            
+                            {/* Descrição */}
+                            <div>
+                              <label htmlFor={`edit-description-${task.id}`} className="block text-sm font-semibold text-gray-700 mb-1">
+                                Descrição
+                              </label>
+                              <textarea
+                                id={`edit-description-${task.id}`}
+                                value={editForm.description || ''}
+                                onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-y min-h-[60px] text-gray-900"
+                                placeholder="Descreva os detalhes da tarefa"
+                                rows={3}
+                              />
+                            </div>
+                            
+                            {/* Meta Row: Prioridade, Categoria, Duração */}
+                            <div className="flex flex-wrap gap-4">
+                              <div className="flex-1 min-w-[120px]">
+                                <label htmlFor={`edit-priority-${task.id}`} className="block text-sm font-semibold text-gray-700 mb-1">
+                                  Prioridade
+                                </label>
+                                <select
+                                  id={`edit-priority-${task.id}`}
+                                  value={editForm.priority || 'medium'}
+                                  onChange={(e) => setEditForm({ ...editForm, priority: e.target.value as Task['priority'] })}
+                                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-gray-900"
+                                >
+                                  <option value="high">Alta</option>
+                                  <option value="medium">Média</option>
+                                  <option value="low">Baixa</option>
+                                </select>
+                              </div>
+                              <div className="flex-1 min-w-[120px]">
+                                <label htmlFor={`edit-category-${task.id}`} className="block text-sm font-semibold text-gray-700 mb-1">
+                                  Categoria
+                                </label>
+                                <select
+                                  id={`edit-category-${task.id}`}
+                                  value={editForm.category || ''}
+                                  onChange={(e) => setEditForm({ ...editForm, category: e.target.value || null })}
+                                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-gray-900"
+                                >
+                                  <option value="">Sem categoria</option>
+                                  {CATEGORIES.map(cat => (
+                                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div className="min-w-[100px]">
+                                <label htmlFor={`edit-time-${task.id}`} className="block text-sm font-semibold text-gray-700 mb-1">
+                                  Duração (min)
+                                </label>
+                                <input
+                                  id={`edit-time-${task.id}`}
+                                  type="number"
+                                  value={editForm.estimatedTime || ''}
+                                  onChange={(e) => setEditForm({ ...editForm, estimatedTime: e.target.value ? parseInt(e.target.value) : null })}
+                                  placeholder="Ex: 30"
+                                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-gray-900"
+                                  min="1"
+                                  max="480"
+                                />
+                              </div>
+                            </div>
+                            
+                            {/* Tags */}
+                            <div>
+                              <label htmlFor={`edit-tags-${task.id}`} className="block text-sm font-semibold text-gray-700 mb-1">
+                                Tags
+                              </label>
+                              <input
+                                id={`edit-tags-${task.id}`}
+                                type="text"
+                                value={editForm.tags?.join(', ') || ''}
+                                onChange={(e) => setEditForm({ ...editForm, tags: e.target.value.split(',').map(t => t.trim()).filter(t => t) })}
+                                placeholder="Separe as tags por vírgula (ex: urgente, trabalho)"
+                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-gray-900"
+                              />
+                            </div>
+                            
+                            {/* Action Buttons */}
+                            <div className="flex justify-end gap-3 pt-2 border-t border-indigo-200">
                               <button
                                 onClick={cancelEdit}
-                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-1"
+                                className="px-4 py-2 text-gray-600 hover:bg-white/50 rounded-lg transition-colors flex items-center gap-1.5 font-medium"
                               >
                                 <X className="h-4 w-4" />
                                 Cancelar
                               </button>
                               <button
                                 onClick={saveEdit}
-                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-1"
+                                className="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-1.5 font-medium shadow-sm"
                               >
                                 <Save className="h-4 w-4" />
                                 Salvar
@@ -1017,34 +1106,43 @@ export default function Dashboard() {
                     {day}
                   </div>
                 ))}
-                {getCalendarDays().map((date, index) => {
-                  if (!date) {
-                    return <div key={`empty-${index}`} className="aspect-square" />;
-                  }
-                  
-                  const dayTasks = getTasksForDate(date);
-                  const hasTasksToday = dayTasks.length > 0;
+                {getCalendarDays().map((calendarDay, index) => {
+                  const { date, dayNumber, isCurrentMonth, hasEvent } = calendarDay;
+                  const dayTasks = hasEvent ? getTasksForDate(date) : [];
                   const todayDate = isToday(date);
                   
                   return (
                     <div
                       key={date.toISOString()}
-                      className={`aspect-square flex flex-col items-center justify-center rounded-lg text-sm transition-colors relative ${
-                        todayDate
-                          ? 'bg-indigo-600 text-white font-bold'
-                          : hasTasksToday
-                            ? 'bg-red-100 text-red-700 font-medium hover:bg-red-200 ring-2 ring-red-300'
-                            : 'hover:bg-gray-100 text-gray-700'
+                      onClick={() => {
+                        // Click on overflow day navigates to that month
+                        if (!isCurrentMonth) {
+                          setCalendarMonth(new Date(date.getFullYear(), date.getMonth(), 1));
+                        }
+                      }}
+                      className={`aspect-square flex flex-col items-center justify-center rounded-lg text-sm transition-colors relative cursor-pointer ${
+                        !isCurrentMonth
+                          ? hasEvent 
+                            ? 'text-gray-400 hover:bg-gray-50'
+                            : 'text-gray-300 hover:bg-gray-50'
+                          : todayDate
+                            ? 'bg-indigo-600 text-white font-bold'
+                            : hasEvent
+                              ? 'bg-red-100 text-red-700 font-medium hover:bg-red-200 ring-2 ring-red-300'
+                              : 'hover:bg-gray-100 text-gray-700 font-medium'
                       }`}
-                      title={hasTasksToday ? `${dayTasks.length} tarefa(s) agendada(s)` : undefined}
-                      aria-label={`${date.getDate()} ${hasTasksToday ? `, ${dayTasks.length} tarefa(s)` : ''}`}
+                      title={hasEvent ? `${dayTasks.length} tarefa(s) agendada(s)` : undefined}
+                      aria-label={`${dayNumber}${!isCurrentMonth ? ' (outro mês)' : ''}${hasEvent ? `, ${dayTasks.length} tarefa(s)` : ''}`}
                     >
-                      <span>{date.getDate()}</span>
-                      {hasTasksToday && (
+                      <span>{dayNumber}</span>
+                      {hasEvent && isCurrentMonth && (
                         <span className={`text-[10px] flex items-center gap-0.5 ${todayDate ? 'text-white/80' : 'text-red-600'}`}>
                           <span className="sr-only">Tarefas: </span>
                           •{dayTasks.length}
                         </span>
+                      )}
+                      {hasEvent && !isCurrentMonth && (
+                        <span className="text-[10px] text-gray-400">•</span>
                       )}
                     </div>
                   );
