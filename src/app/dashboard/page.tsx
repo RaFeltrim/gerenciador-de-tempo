@@ -194,10 +194,12 @@ export default function Dashboard() {
     }
   };
 
-  // Start timer with a specific task - links task list timer icon to main Pomodoro
+  // Start timer with a specific task - uses task's estimated time or default 25 min
   const startTimerForTask = (taskId: string) => {
+    const task = tasks.find(t => t.id === taskId);
+    const durationMinutes = task?.estimatedTime || 25;
     setActiveTaskId(taskId);
-    setTimerSeconds(25 * 60);
+    setTimerSeconds(durationMinutes * 60);
     setIsTimerRunning(true);
   };
 
