@@ -38,6 +38,8 @@ import { calculateNextDueDate, getRecurrenceLabel, RecurrencePattern } from "../
 const DEFAULT_EVENT_DURATION_MINUTES = 60;
 const STATUS_RESET_DELAY_MS = 3000;
 const MIN_DESCRIPTION_LENGTH_THRESHOLD = 10;
+const DEFAULT_TIMER_MINUTES = 25;
+const DEFAULT_TIMER_SECONDS = DEFAULT_TIMER_MINUTES * 60;
 
 // Predefined categories with gradient colors
 const CATEGORIES = [
@@ -108,7 +110,8 @@ export default function Dashboard() {
   const [isSyncing, setIsSyncing] = useState(false);
   
   // Timer state
-  const [timerSeconds, setTimerSeconds] = useState(25 * 60);
+  const [timerSeconds, setTimerSeconds] = useState(DEFAULT_TIMER_SECONDS);
+  const [timerTotalSeconds, setTimerTotalSeconds] = useState(DEFAULT_TIMER_SECONDS);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   
@@ -338,7 +341,7 @@ export default function Dashboard() {
     setIsLoading(false);
   };
 
-  const toggleTask = async (id: string) => {
+  const toggleTask = (id: string) => {
     setTasks((prev) => {
       const taskToToggle = prev.find(t => t.id === id);
       if (!taskToToggle) return prev;
@@ -359,6 +362,7 @@ export default function Dashboard() {
           isRecurring: true,
           recurrencePattern: taskToToggle.recurrencePattern,
           parentTaskId: taskToToggle.parentTaskId || taskToToggle.id,
+          googleTaskId: null,
         };
         
         return prev.map((task) =>
@@ -445,14 +449,18 @@ export default function Dashboard() {
 
   const startTimerForTask = (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
-    const durationMinutes = task?.estimatedTime || 25;
+    const durationMinutes = task?.estimatedTime || DEFAULT_TIMER_MINUTES;
+    const totalSecs = durationMinutes * 60;
     setActiveTaskId(taskId);
-    setTimerSeconds(durationMinutes * 60);
+    setTimerSeconds(totalSecs);
+    setTimerTotalSeconds(totalSecs);
     setIsTimerRunning(true);
   };
 
   const setTimerPreset = (minutes: number) => {
-    setTimerSeconds(minutes * 60);
+    const totalSecs = minutes * 60;
+    setTimerSeconds(totalSecs);
+    setTimerTotalSeconds(totalSecs);
     setIsTimerRunning(false);
   };
 
@@ -1065,7 +1073,7 @@ export default function Dashboard() {
                       strokeWidth="8"
                       fill="none"
                       strokeDasharray="352"
-                      strokeDashoffset={352 - (352 * (1 - timerSeconds / (25 * 60)))}
+                      strokeDashoffset={352 - (352 * (timerSeconds / timerTotalSeconds))}
                       className="text-indigo-600 transition-all duration-1000"
                       strokeLinecap="round"
                     />
@@ -1098,7 +1106,8 @@ export default function Dashboard() {
                   </button>
                   <button
                     onClick={() => {
-                      setTimerSeconds(25 * 60);
+                      setTimerSeconds(DEFAULT_TIMER_SECONDS);
+                      setTimerTotalSeconds(DEFAULT_TIMER_SECONDS);
                       setIsTimerRunning(false);
                       setActiveTaskId(null);
                     }}
