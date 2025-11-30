@@ -14,29 +14,50 @@ Este relatório documenta todos os testes realizados no projeto FocusFlow, inclu
 
 ### Visão Geral
 
-| Categoria | Total | Passando | Falhando | Cobertura |
-|-----------|-------|----------|----------|-----------|
-| Testes Unitários (Jest) | 136 | 136 | 0 | 13.49% |
-| Testes de Componentes (Cypress) | 5 | - | - | - |
-| Testes E2E (Cypress) | 2 | - | - | - |
-| Testes de Aceitação (Robot) | 3 | - | - | - |
-| **Total** | **146** | - | - | - |
+| Categoria                       | Total   | Passando | Falhando | Cobertura |
+| ------------------------------- | ------- | -------- | -------- | --------- |
+| Testes Unitários (Jest)         | 136     | 136      | 0        | 13.49%    |
+| Testes de Componentes (Cypress) | 5       | -        | -        | -         |
+| Testes E2E (Cypress)            | 2       | -        | -        | -         |
+| Testes de Aceitação (Robot)     | 3       | -        | -        | -         |
+| **Total**                       | **146** | -        | -        | -         |
 
 ### Cobertura por Módulo
 
-| Arquivo | Statements | Branches | Functions | Lines |
-|---------|------------|----------|-----------|-------|
-| **components/** | | | | |
-| PomodoroTimer.tsx | 100% | 100% | 100% | 100% |
-| TaskItem.tsx | 74.35% | 74.07% | 91.66% | 75% |
-| button.tsx | 100% | 90.9% | 100% | 100% |
-| **lib/** | | | | |
-| date-validation.ts | 94.11% | 95.55% | 100% | 94.11% |
-| task-utils.ts | 100% | 100% | 100% | 100% |
-| supabase.ts | 0% | 0% | 0% | 0% |
-| auth.ts | 0% | 0% | 0% | 0% |
-| google-calendar.ts | 0% | 0% | 0% | 0% |
-| google-tasks.ts | 0% | 0% | 0% | 0% |
+| Arquivo            | Statements | Branches | Functions | Lines  |
+| ------------------ | ---------- | -------- | --------- | ------ |
+| **components/**    |            |          |           |        |
+| PomodoroTimer.tsx  | 100%       | 100%     | 100%      | 100%   |
+| TaskItem.tsx       | 74.35%     | 74.07%   | 91.66%    | 75%    |
+| button.tsx         | 100%       | 90.9%    | 100%      | 100%   |
+| **lib/**           |            |          |           |        |
+| date-validation.ts | 94.11%     | 95.55%   | 100%      | 94.11% |
+| task-utils.ts      | 100%       | 100%     | 100%      | 100%   |
+| supabase.ts        | 0%         | 0%       | 0%        | 0%     |
+| auth.ts            | 0%         | 0%       | 0%        | 0%     |
+| google-calendar.ts | 0%         | 0%       | 0%        | 0%     |
+| google-tasks.ts    | 0%         | 0%       | 0%        | 0%     |
+
+---
+
+## Novo Plano de Testes Completo
+
+### Visão Geral
+
+Implementamos um plano de testes abrangente que vai além da cobertura atual, incluindo:
+
+1. **Testes Unitários Expandidos** - Cobertura completa de bibliotecas de integração
+2. **Testes de Componentes Adicionais** - Testes para Dashboard e outros componentes principais
+3. **Testes de Integração** - Validação de APIs e integrações externas
+4. **Testes E2E Completos** - Fluxos de usuário completos com Cypress
+5. **Testes de Performance e Segurança** - Verificação de métricas críticas
+
+Documentação relacionada:
+
+- [Plano de Testes Completo](PLANO_TESTES_COMPLETO.md)
+- [Implementação dos Testes](IMPLEMENTACAO_TESTES.md)
+- [Execução dos Testes](EXECUCAO_TESTES.md)
+- [Relatório de Cobertura](RELATORIO_COBERTURA_TESTES.md)
 
 ---
 
@@ -47,17 +68,20 @@ Este relatório documenta todos os testes realizados no projeto FocusFlow, inclu
 **Total**: 53 testes
 
 #### isLeapYear
+
 - ✅ Deve retornar true para anos divisíveis por 4 mas não por 100
 - ✅ Deve retornar false para anos divisíveis por 100 mas não por 400
 - ✅ Deve retornar true para anos divisíveis por 400
 - ✅ Deve retornar false para anos não bissextos
 
 #### getDaysInMonth
+
 - ✅ Deve retornar dias corretos para cada mês em ano não bissexto
 - ✅ Deve retornar 29 dias para fevereiro em ano bissexto
 - ✅ Deve retornar 0 para meses inválidos
 
 #### isValidDate
+
 - ✅ Deve retornar false para 31/11/2025 (Novembro tem 30 dias)
 - ✅ Deve retornar false para 29/02/2025 (2025 não é bissexto)
 - ✅ Deve retornar true para 29/02/2024 (2024 é bissexto)
@@ -66,6 +90,7 @@ Este relatório documenta todos os testes realizados no projeto FocusFlow, inclu
 - ✅ Deve retornar false para valores não inteiros
 
 #### validateDateString
+
 - ✅ Deve validar formato DD/MM/YYYY corretamente
 - ✅ Deve validar formato DD/MM usando ano atual
 - ✅ Deve retornar erro para data inválida 31/11/2025
@@ -73,6 +98,7 @@ Este relatório documenta todos os testes realizados no projeto FocusFlow, inclu
 - ✅ Deve retornar válido para 29/02/2024
 
 #### validateISODateString
+
 - ✅ Deve retornar válido para null ou undefined
 - ✅ Deve retornar válido para ISO date válida
 - ✅ Deve retornar erro para datas inválidas em formato ISO
@@ -84,6 +110,7 @@ Este relatório documenta todos os testes realizados no projeto FocusFlow, inclu
 **Total**: 16 testes
 
 #### getRecurrenceLabel
+
 - ✅ Deve retornar "Diário" para padrão daily
 - ✅ Deve retornar "Semanal" para padrão weekly
 - ✅ Deve retornar "Mensal" para padrão monthly
@@ -91,6 +118,7 @@ Este relatório documenta todos os testes realizados no projeto FocusFlow, inclu
 - ✅ Deve retornar string vazia para null
 
 #### calculateNextDueDate
+
 - ✅ Deve adicionar 1 dia para padrão daily
 - ✅ Deve adicionar 7 dias para padrão weekly
 - ✅ Deve adicionar 1 mês para padrão monthly
@@ -109,6 +137,7 @@ Este relatório documenta todos os testes realizados no projeto FocusFlow, inclu
 **Total**: 20 testes
 
 #### Renderização Inicial
+
 - ✅ Deve renderizar com 25 minutos por padrão
 - ✅ Deve renderizar com tempo inicial customizado
 - ✅ Deve renderizar botão Iniciar inicialmente
@@ -116,6 +145,7 @@ Este relatório documenta todos os testes realizados no projeto FocusFlow, inclu
 - ✅ Deve renderizar ícone play quando não está rodando
 
 #### Funcionalidade do Timer
+
 - ✅ Deve iniciar contagem regressiva ao clicar Iniciar
 - ✅ Deve mostrar botão Pausar quando timer está rodando
 - ✅ Deve parar contagem ao clicar Pausar
@@ -123,17 +153,20 @@ Este relatório documenta todos os testes realizados no projeto FocusFlow, inclu
 - ✅ Deve parar de rodar ao clicar Resetar durante contagem
 
 #### Conclusão do Timer
+
 - ✅ Deve chamar onTimerEnd quando timer chega a 0
 - ✅ Deve parar de rodar quando timer chega a 0
 - ✅ Deve exibir 00:00 quando completado
 
 #### Formatação de Tempo
+
 - ✅ Deve formatar minutos de um dígito corretamente
 - ✅ Deve formatar minutos de dois dígitos corretamente
 - ✅ Deve formatar segundos corretamente
 - ✅ Deve formatar tempo misto corretamente
 
 #### Casos Extremos
+
 - ✅ Deve lidar com timer muito curto (1 segundo)
 - ✅ Deve lidar com timer longo (60 minutos)
 - ✅ Deve lidar com tempo inicial 0
@@ -160,11 +193,13 @@ Este relatório documenta todos os testes realizados no projeto FocusFlow, inclu
 **Total**: 15 testes
 
 #### Renderização
+
 - ✅ Deve renderizar botão com children
 - ✅ Deve aplicar estilos de variante padrão
 - ✅ Deve aplicar estilos de tamanho padrão
 
 #### Variantes
+
 - ✅ Deve aplicar estilos de variante destructive
 - ✅ Deve aplicar estilos de variante outline
 - ✅ Deve aplicar estilos de variante secondary
@@ -172,16 +207,19 @@ Este relatório documenta todos os testes realizados no projeto FocusFlow, inclu
 - ✅ Deve aplicar estilos de variante link
 
 #### Tamanhos
+
 - ✅ Deve aplicar estilos de tamanho sm
 - ✅ Deve aplicar estilos de tamanho lg
 - ✅ Deve aplicar estilos de tamanho icon
 
 #### Interações
+
 - ✅ Deve lidar com eventos de click
 - ✅ Não deve disparar click quando desabilitado
 - ✅ Deve aplicar estilos disabled quando desabilitado
 
 #### Atributos e Acessibilidade
+
 - ✅ Deve encaminhar atributo type
 - ✅ Deve ser focável
 
@@ -192,6 +230,7 @@ Este relatório documenta todos os testes realizados no projeto FocusFlow, inclu
 **Total**: 24 testes
 
 #### Extração de Prioridade
+
 - ✅ Deve retornar prioridade alta para "urgente"
 - ✅ Deve retornar prioridade alta para "importante"
 - ✅ Deve retornar prioridade alta para "crítico"
@@ -205,6 +244,7 @@ Este relatório documenta todos os testes realizados no projeto FocusFlow, inclu
 - ✅ Deve retornar prioridade média por padrão
 
 #### Extração de Tempo
+
 - ✅ Deve extrair horas corretamente
 - ✅ Deve extrair minutos corretamente
 - ✅ Deve extrair pomodoros corretamente (25 min cada)
@@ -215,6 +255,7 @@ Este relatório documenta todos os testes realizados no projeto FocusFlow, inclu
 - ✅ Deve retornar null para tarefas sem informação de tempo
 
 #### Extração de Recorrência
+
 - ✅ Deve detectar recorrência diária
 - ✅ Deve detectar recorrência semanal
 - ✅ Deve detectar recorrência mensal
@@ -227,13 +268,13 @@ Este relatório documenta todos os testes realizados no projeto FocusFlow, inclu
 
 ### PomodoroTimer.cy.tsx
 
-| Teste | Status |
-|-------|--------|
-| Monta corretamente | ✅ |
-| Exibe tempo inicial corretamente | ✅ |
-| Inicia contagem regressiva ao clicar iniciar | ✅ |
-| Pausa contagem ao clicar pausar | ✅ |
-| Reseta timer ao clicar resetar | ✅ |
+| Teste                                        | Status |
+| -------------------------------------------- | ------ |
+| Monta corretamente                           | ✅     |
+| Exibe tempo inicial corretamente             | ✅     |
+| Inicia contagem regressiva ao clicar iniciar | ✅     |
+| Pausa contagem ao clicar pausar              | ✅     |
+| Reseta timer ao clicar resetar               | ✅     |
 
 ---
 
@@ -241,10 +282,10 @@ Este relatório documenta todos os testes realizados no projeto FocusFlow, inclu
 
 ### login-and-create-task.cy.ts
 
-| Cenário | Status |
-|---------|--------|
-| Deve fazer login e criar uma tarefa | ✅ |
-| Deve fazer logout com sucesso | ✅ |
+| Cenário                             | Status |
+| ----------------------------------- | ------ |
+| Deve fazer login e criar uma tarefa | ✅     |
+| Deve fazer logout com sucesso       | ✅     |
 
 ---
 
@@ -252,11 +293,11 @@ Este relatório documenta todos os testes realizados no projeto FocusFlow, inclu
 
 ### parse-task-api.robot
 
-| Test Case | Status |
-|-----------|--------|
-| Enviar texto simples e receber dados estruturados | ✅ |
-| Enviar tarefa com prioridade e tempo | ✅ |
-| Enviar tarefa com data | ✅ |
+| Test Case                                         | Status |
+| ------------------------------------------------- | ------ |
+| Enviar texto simples e receber dados estruturados | ✅     |
+| Enviar tarefa com prioridade e tempo              | ✅     |
+| Enviar tarefa com data                            | ✅     |
 
 ---
 
@@ -294,6 +335,7 @@ Este relatório documenta todos os testes realizados no projeto FocusFlow, inclu
 2. Implementar testes de snapshot para componentes visuais
 3. Aumentar cobertura de branches para 80%+
 4. Adicionar testes de performance para operações críticas
+5. **Implementar plano de testes completo** (ver documentação adicionada)
 
 ---
 
@@ -326,11 +368,13 @@ robot tests/robot/
 O projeto FocusFlow possui uma base sólida de testes com **136 testes unitários** cobrindo os componentes principais e bibliotecas utilitárias. A pirâmide de testes está bem estruturada com testes em todos os níveis (unitários, componentes, E2E e aceitação).
 
 **Próximos Passos Recomendados**:
+
 1. Aumentar cobertura das APIs
 2. Adicionar testes de integração com Supabase mockado
 3. Implementar testes de acessibilidade (a11y)
 4. Configurar CI/CD com execução automática de testes
+5. **Implementar plano de testes completo** conforme documentação adicionada
 
 ---
 
-*Relatório gerado automaticamente pelo sistema de QA do FocusFlow*
+_Relatório gerado automaticamente pelo sistema de QA do FocusFlow_
