@@ -48,6 +48,9 @@ function extractDate(text: string): string | null {
   
   // Helper function to extract time from text
   const extractTimeFromText = (baseDate: Date): Date => {
+    // Create a new Date object to avoid mutating the input
+    const result = new Date(baseDate.getTime());
+    
     // Match patterns like "às 14h", "as 14:30", "14h30", "14:30", "às 14 horas"
     const timePatterns = [
       /(?:às|as)\s*(\d{1,2})(?::(\d{2}))?\s*(?:h|horas)?/i,
@@ -61,15 +64,15 @@ function extractDate(text: string): string | null {
         const hours = parseInt(match[1]);
         const minutes = match[2] ? parseInt(match[2]) : 0;
         if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
-          baseDate.setHours(hours, minutes, 0, 0);
-          return baseDate;
+          result.setHours(hours, minutes, 0, 0);
+          return result;
         }
       }
     }
     
     // Default to 9:00 AM if no time specified
-    baseDate.setHours(9, 0, 0, 0);
-    return baseDate;
+    result.setHours(9, 0, 0, 0);
+    return result;
   };
   
   // Check for "hoje" (today)
