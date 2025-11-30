@@ -5,6 +5,12 @@
 
 /**
  * Check if a year is a leap year
+ * 
+ * Leap year rules:
+ * - A year is a leap year if it is divisible by 4
+ * - Exception: Years divisible by 100 are NOT leap years
+ * - Exception to exception: Years divisible by 400 ARE leap years
+ * 
  * @param year - The year to check
  * @returns true if the year is a leap year
  */
