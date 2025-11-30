@@ -1,7 +1,7 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Supabase configuration - FocusFlow project
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://bzuvzfodrtvebnrlljtk.supabase.co';
+// Supabase configuration - configure via environment variables
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
 // Check if Supabase is configured

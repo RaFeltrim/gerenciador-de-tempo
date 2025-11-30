@@ -2,7 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { 
   Calendar, 
   LogOut, 
@@ -93,7 +93,6 @@ export default function Dashboard() {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Task>>({});
   const [showAnalytics, setShowAnalytics] = useState(false);
-  const [storageMode, setStorageMode] = useState<'local' | 'supabase'>('local');
 
   // Load tasks from localStorage on mount
   useEffect(() => {
