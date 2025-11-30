@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { calculateNextDueDate } from './task-utils';
 
 // Supabase configuration - configure via environment variables
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -175,31 +176,3 @@ export const taskOperations = {
     return { completedTask, nextTask };
   },
 };
-
-// Helper function to calculate next due date based on recurrence pattern
-export function calculateNextDueDate(currentDueDate: string | null, pattern: 'daily' | 'weekly' | 'monthly' | 'weekdays'): string | null {
-  const baseDate = currentDueDate ? new Date(currentDueDate) : new Date();
-  const nextDate = new Date(baseDate);
-
-  switch (pattern) {
-    case 'daily':
-      nextDate.setDate(nextDate.getDate() + 1);
-      break;
-    case 'weekly':
-      nextDate.setDate(nextDate.getDate() + 7);
-      break;
-    case 'monthly':
-      nextDate.setMonth(nextDate.getMonth() + 1);
-      break;
-    case 'weekdays':
-      // Move to next weekday
-      do {
-        nextDate.setDate(nextDate.getDate() + 1);
-      } while (nextDate.getDay() === 0 || nextDate.getDay() === 6);
-      break;
-    default:
-      return null;
-  }
-
-  return nextDate.toISOString();
-}
