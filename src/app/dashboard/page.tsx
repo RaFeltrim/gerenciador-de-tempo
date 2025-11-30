@@ -23,6 +23,7 @@ import {
   BarChart3,
   Repeat
 } from "lucide-react";
+import { calculateNextDueDate, getRecurrenceLabel, RecurrencePattern } from "../../lib/task-utils";
 
 // Constants
 const DEFAULT_EVENT_DURATION_MINUTES = 60;
@@ -51,51 +52,9 @@ interface Task {
   category?: string | null;
   tags?: string[];
   isRecurring?: boolean;
-  recurrencePattern?: 'daily' | 'weekly' | 'monthly' | 'weekdays' | null;
+  recurrencePattern?: RecurrencePattern | null;
   parentTaskId?: string | null;
 }
-
-// Helper function to calculate next due date for recurring tasks
-const calculateNextDueDate = (currentDueDate: string | null, pattern: 'daily' | 'weekly' | 'monthly' | 'weekdays'): string => {
-  const baseDate = currentDueDate ? new Date(currentDueDate) : new Date();
-  const nextDate = new Date(baseDate);
-
-  switch (pattern) {
-    case 'daily':
-      nextDate.setDate(nextDate.getDate() + 1);
-      break;
-    case 'weekly':
-      nextDate.setDate(nextDate.getDate() + 7);
-      break;
-    case 'monthly':
-      nextDate.setMonth(nextDate.getMonth() + 1);
-      break;
-    case 'weekdays':
-      // Move to next weekday
-      do {
-        nextDate.setDate(nextDate.getDate() + 1);
-      } while (nextDate.getDay() === 0 || nextDate.getDay() === 6);
-      break;
-  }
-
-  return nextDate.toISOString();
-};
-
-// Helper function to get recurrence pattern display text
-const getRecurrenceLabel = (pattern: 'daily' | 'weekly' | 'monthly' | 'weekdays' | null): string => {
-  switch (pattern) {
-    case 'daily':
-      return 'Diário';
-    case 'weekly':
-      return 'Semanal';
-    case 'monthly':
-      return 'Mensal';
-    case 'weekdays':
-      return 'Dias úteis';
-    default:
-      return '';
-  }
-};
 
 // Helper function to check if description is essentially the same as title
 const isDescriptionRedundant = (title: string, description: string): boolean => {
