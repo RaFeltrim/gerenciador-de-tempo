@@ -13,7 +13,9 @@ import {
   Trash2,
   Timer,
   Flag,
-  Play
+  Play,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 
 // Constants
@@ -65,6 +67,8 @@ export default function Dashboard() {
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [calendarSyncStatus, setCalendarSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
+  const [customTime, setCustomTime] = useState<string>('');
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -156,12 +160,19 @@ export default function Dashboard() {
     
     const parsedTask = await parseTask(newTaskText);
     
+    // Use custom time if provided and valid, otherwise use parsed time
+    const parsedCustomTime = customTime ? parseInt(customTime, 10) : NaN;
+    const customTimeValue = !isNaN(parsedCustomTime) && parsedCustomTime > 0 && parsedCustomTime <= 480 
+      ? parsedCustomTime 
+      : null;
+    const estimatedTime = customTimeValue || parsedTask?.estimatedTime || null;
+    
     const newTask: Task = {
       id: crypto.randomUUID(),
       title: parsedTask?.title || newTaskText,
       description: parsedTask?.description || newTaskText,
       priority: parsedTask?.priority || 'medium',
-      estimatedTime: parsedTask?.estimatedTime || null,
+      estimatedTime: estimatedTime,
       dueDate: parsedTask?.dueDate || null,
       completed: false,
       createdAt: new Date().toISOString(),
@@ -169,6 +180,7 @@ export default function Dashboard() {
     
     setTasks((prev) => [...prev, newTask]);
     setNewTaskText('');
+    setCustomTime(''); // Clear custom time input
     
     // Create Google Calendar event if task has a due date
     if (newTask.dueDate) {
@@ -194,10 +206,12 @@ export default function Dashboard() {
     }
   };
 
-  // Start timer with a specific task - links task list timer icon to main Pomodoro
+  // Start timer with a specific task - uses task's estimated time or default 25 min
   const startTimerForTask = (taskId: string) => {
+    const task = tasks.find(t => t.id === taskId);
+    const durationMinutes = task?.estimatedTime || 25;
     setActiveTaskId(taskId);
-    setTimerSeconds(25 * 60);
+    setTimerSeconds(durationMinutes * 60);
     setIsTimerRunning(true);
   };
 
@@ -238,6 +252,70 @@ export default function Dashboard() {
         return 'bg-white border-gray-200 shadow-sm';
     }
   };
+
+  // Calendar helper functions
+  const isSameDay = (date1: Date, date2: Date) => {
+    return date1.getFullYear() === date2.getFullYear() &&
+           date1.getMonth() === date2.getMonth() &&
+           date1.getDate() === date2.getDate();
+  };
+
+  const isToday = (date: Date) => {
+    return isSameDay(date, new Date());
+  };
+
+  const getCalendarDays = () => {
+    const year = calendarMonth.getFullYear();
+    const month = calendarMonth.getMonth();
+    
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startingDayOfWeek = firstDay.getDay();
+    const daysInMonth = lastDay.getDate();
+    
+    const days: (Date | null)[] = [];
+    
+    // Add empty slots for days before the first day of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
+    }
+    
+    // Add all days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(new Date(year, month, day));
+    }
+    
+    return days;
+  };
+
+  const getTasksForDate = (date: Date) => {
+    return tasks.filter(task => {
+      if (!task.dueDate) return false;
+      return isSameDay(new Date(task.dueDate), date);
+    });
+  };
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCalendarMonth(prev => {
+      const newDate = new Date(prev);
+      if (direction === 'prev') {
+        newDate.setMonth(newDate.getMonth() - 1);
+      } else {
+        newDate.setMonth(newDate.getMonth() + 1);
+      }
+      return newDate;
+    });
+  };
+
+  const formatMonthYear = (date: Date) => {
+    return date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  };
+
+  // Get upcoming tasks sorted by date
+  const upcomingTasks = tasks
+    .filter(task => task.dueDate && !task.completed)
+    .sort((a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime())
+    .slice(0, 5);
 
   if (status === 'loading') {
     return (
@@ -307,17 +385,38 @@ export default function Dashboard() {
                   className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-gray-900 placeholder-gray-400 transition-shadow"
                   disabled={isLoading}
                 />
-                <button
-                  onClick={addTask}
-                  disabled={isLoading || !newTaskText.trim()}
-                  className="flex items-center justify-center gap-2 px-5 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium shadow-sm hover:shadow-md"
-                >
-                  <Plus className="h-5 w-5" />
-                  {isLoading ? 'Processando...' : 'Adicionar'}
-                </button>
+                <div className="flex gap-2">
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={customTime}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Allow empty string or valid numbers within range
+                        if (value === '' || (parseInt(value, 10) >= 1 && parseInt(value, 10) <= 480)) {
+                          setCustomTime(value);
+                        }
+                      }}
+                      placeholder="min"
+                      min="1"
+                      max="480"
+                      className="w-20 px-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-gray-900 placeholder-gray-400 transition-shadow text-center"
+                      disabled={isLoading}
+                    />
+                    <Clock className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                  </div>
+                  <button
+                    onClick={addTask}
+                    disabled={isLoading || !newTaskText.trim()}
+                    className="flex items-center justify-center gap-2 px-5 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium shadow-sm hover:shadow-md"
+                  >
+                    <Plus className="h-5 w-5" />
+                    {isLoading ? 'Processando...' : 'Adicionar'}
+                  </button>
+                </div>
               </div>
               <p className="mt-3 text-sm text-gray-500">
-                Use linguagem natural para descrever suas tarefas. O sistema extrairá data, prioridade e tempo estimado automaticamente.
+                Use linguagem natural para descrever suas tarefas. Defina o tempo manualmente (em minutos) ou deixe em branco para extração automática.
               </p>
             </div>
           </div>
@@ -565,8 +664,130 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Google Calendar Info - Fifth on mobile */}
-          <div className="order-5">
+          {/* Calendar View - Fifth on mobile, spans full width */}
+          <div className="lg:col-span-2 order-5">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-5 sm:p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-indigo-600" />
+                  Calendário
+                </h2>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => navigateMonth('prev')}
+                    className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <ChevronLeft className="h-5 w-5 text-gray-600" />
+                  </button>
+                  <span className="text-sm font-medium text-gray-700 min-w-[140px] text-center capitalize">
+                    {formatMonthYear(calendarMonth)}
+                  </span>
+                  <button
+                    onClick={() => navigateMonth('next')}
+                    className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <ChevronRight className="h-5 w-5 text-gray-600" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Calendar Grid */}
+              <div className="grid grid-cols-7 gap-1 mb-4">
+                {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
+                  <div key={day} className="text-center text-xs font-medium text-gray-500 py-2">
+                    {day}
+                  </div>
+                ))}
+                {getCalendarDays().map((date, index) => {
+                  if (!date) {
+                    return <div key={`empty-${index}`} className="aspect-square" />;
+                  }
+                  
+                  const dayTasks = getTasksForDate(date);
+                  const hasTasksToday = dayTasks.length > 0;
+                  const todayDate = isToday(date);
+                  
+                  return (
+                    <div
+                      key={date.toISOString()}
+                      className={`aspect-square flex flex-col items-center justify-center rounded-lg text-sm transition-colors relative ${
+                        todayDate
+                          ? 'bg-indigo-600 text-white font-bold'
+                          : hasTasksToday
+                            ? 'bg-red-100 text-red-700 font-medium hover:bg-red-200 ring-2 ring-red-300'
+                            : 'hover:bg-gray-100 text-gray-700'
+                      }`}
+                      title={hasTasksToday ? `${dayTasks.length} tarefa(s) agendada(s)` : undefined}
+                      aria-label={`${date.getDate()} ${hasTasksToday ? `, ${dayTasks.length} tarefa(s)` : ''}`}
+                    >
+                      <span>{date.getDate()}</span>
+                      {hasTasksToday && (
+                        <span className={`text-[10px] flex items-center gap-0.5 ${todayDate ? 'text-white/80' : 'text-red-600'}`}>
+                          <span className="sr-only">Tarefas: </span>
+                          •{dayTasks.length}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Upcoming Tasks List */}
+              <div className="border-t border-gray-100 pt-4">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">Próximos Eventos</h3>
+                {upcomingTasks.length === 0 ? (
+                  <p className="text-sm text-gray-500">Nenhum evento agendado</p>
+                ) : (
+                  <div className="space-y-2">
+                    {upcomingTasks.map(task => {
+                      const taskDate = new Date(task.dueDate!);
+                      const isTodayTask = isToday(taskDate);
+                      
+                      return (
+                        <div
+                          key={task.id}
+                          className={`flex items-center gap-3 p-2 rounded-lg ${
+                            isTodayTask 
+                              ? 'bg-red-50 border border-red-200' 
+                              : 'bg-gray-50'
+                          }`}
+                        >
+                          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                            isTodayTask ? 'bg-red-500' : 'bg-indigo-500'
+                          }`} />
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm font-medium truncate ${
+                              isTodayTask ? 'text-red-700' : 'text-gray-700'
+                            }`}>
+                              {task.title}
+                            </p>
+                            <p className={`text-xs ${
+                              isTodayTask ? 'text-red-600' : 'text-gray-500'
+                            }`}>
+                              {isTodayTask ? 'Hoje' : taskDate.toLocaleDateString('pt-BR', { 
+                                weekday: 'short', 
+                                day: 'numeric', 
+                                month: 'short' 
+                              })}
+                              {task.estimatedTime && ` • ${task.estimatedTime} min`}
+                            </p>
+                          </div>
+                          {isTodayTask && (
+                            <span className="text-xs font-medium text-red-600 bg-red-100 px-2 py-0.5 rounded-full">
+                              HOJE
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Google Calendar Info - Sixth on mobile */}
+          <div className="order-6">
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-5 sm:p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-indigo-600" />
