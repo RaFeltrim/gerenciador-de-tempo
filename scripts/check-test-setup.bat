@@ -102,7 +102,7 @@ echo.
 
 REM Check if Next.js dev server is running
 echo Checking Next.js dev server...
-curl -s http://localhost:3000 >nul 2>&1
+curl -s --connect-timeout 5 --max-time 10 http://localhost:3000 >nul 2>&1
 if %errorlevel% equ 0 (
     echo [OK] Next.js dev server is running on http://localhost:3000
 ) else (
