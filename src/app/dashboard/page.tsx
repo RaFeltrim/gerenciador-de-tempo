@@ -896,6 +896,7 @@ export default function Dashboard() {
                       >
                         <option value="daily">Diário</option>
                         <option value="weekly">Semanal</option>
+                        <option value="weekdays">Dias úteis</option>
                         <option value="monthly">Mensal</option>
                       </select>
                     )}
