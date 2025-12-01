@@ -89,7 +89,7 @@ e2e: {
 ```json
 {
   "devDependencies": {
-    "start-server-and-test": "^2.0.x"
+    "start-server-and-test": "^2.1.3"
   }
 }
 ```
