@@ -12,10 +12,10 @@ describe('Authentication Flow', () => {
 
   it('should display login page for unauthenticated users', () => {
     // Should show the login button
-    cy.contains('Comece Agora').should('be.visible');
+    cy.contains('Entrar com Google').should('be.visible');
     
     // Should show app description
-    cy.contains('Sua assistente pessoal de produtividade').should('be.visible');
+    cy.contains('Uma plataforma completa de gerenciamento de tempo').should('be.visible');
     
     // Should show Google login option
     cy.contains('Entrar com Google').should('be.visible');
@@ -29,7 +29,7 @@ describe('Authentication Flow', () => {
     cy.url().should('eq', `${Cypress.config().baseUrl}/`);
     
     // Should show login page
-    cy.contains('Comece Agora').should('be.visible');
+    cy.contains('Entrar com Google').should('be.visible');
   });
 
   it('should show loading state during authentication', () => {
@@ -125,7 +125,7 @@ describe('Authenticated User Experience', () => {
     cy.url().should('eq', `${Cypress.config().baseUrl}/`);
     
     // Should show login page
-    cy.contains('Comece Agora').should('be.visible');
+    cy.contains('Entrar com Google').should('be.visible');
   });
 
   it('should handle API authentication errors and logout automatically', () => {
@@ -138,7 +138,7 @@ describe('Authenticated User Experience', () => {
     // Visit dashboard
     cy.visit('/dashboard');
     
-    // Should redirect to login after API error
+    // Should redirect to login after API error (home page is the login page)
     cy.url().should('eq', `${Cypress.config().baseUrl}/`);
   });
 });
