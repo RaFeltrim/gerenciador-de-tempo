@@ -13,6 +13,16 @@ Antes de executar os testes, certifique-se de ter:
 3. Todas as dependências do projeto instaladas (`npm install`)
 4. Variáveis de ambiente configuradas (`.env.local`)
 
+### ⚠️ Correções Recentes (Dezembro 2025)
+
+**Problemas Resolvidos:**
+
+- ✅ Timeouts nos testes E2E corrigidos
+- ✅ Erro de configuração `component-index.html` resolvido
+- ✅ Servidor Next.js agora inicia automaticamente para testes E2E
+
+**Para detalhes completos das correções, consulte:** [`CYPRESS_FIXES_GUIDE.md`](./CYPRESS_FIXES_GUIDE.md)
+
 ## 2. Estrutura de Comandos
 
 ### 2.1. Testes Unitários
@@ -34,24 +44,44 @@ npm test __tests__/unit/
 ### 2.2. Testes de Componentes (Cypress)
 
 ```bash
-# Executar testes de componentes
+# Executar testes de componentes (recomendado - usa npm script)
+npm run cypress:run:component
+
+# OU usando npx diretamente
 npx cypress run --component
 
 # Abrir interface do Cypress para testes de componentes
-npx cypress open --component
+npm run cypress:open:component
 ```
+
+**Nota:** Testes de componente NÃO requerem servidor Next.js rodando.
 
 ### 2.3. Testes E2E (Cypress)
 
+**⚠️ IMPORTANTE:** Os testes E2E agora iniciam automaticamente o servidor Next.js usando `start-server-and-test`.
+
 ```bash
-# Executar todos os testes E2E
-npx cypress run --e2e
+# Executar todos os testes E2E (INICIA SERVIDOR AUTOMATICAMENTE)
+npm run cypress:run:e2e
 
 # Executar testes E2E em um navegador específico
-npx cypress run --e2e --browser chrome
+npm run cypress:run:e2e -- --browser chrome
 
-# Abrir interface do Cypress para testes E2E
-npx cypress open --e2e
+# Abrir interface do Cypress para testes E2E (INICIA SERVIDOR AUTOMATICAMENTE)
+npm run cypress:open:e2e
+
+# Executar TODOS os testes Cypress (E2E + Componente)
+npm run cypress:run
+```
+
+**Alternativa Manual (para debugging):**
+
+```bash
+# Terminal 1 - Iniciar o servidor de desenvolvimento
+npm run dev
+
+# Terminal 2 - Executar testes E2E (sem iniciar servidor automático)
+npx cypress run --e2e
 ```
 
 ### 2.4. Testes de Integração
@@ -104,16 +134,16 @@ echo "✅ Testes de integração concluídos com sucesso!"
 
 # Executar testes de componentes
 echo "🧩 Executando testes de componentes..."
-npx cypress run --component
+npm run cypress:run:component
 if [ $? -ne 0 ]; then
   echo "❌ Testes de componentes falharam!"
   exit 1
 fi
 echo "✅ Testes de componentes concluídos com sucesso!"
 
-# Executar testes E2E
-echo "🌐 Executando testes E2E..."
-npx cypress run --e2e
+# Executar testes E2E (com servidor automático)
+echo "🌐 Executando testes E2E (iniciando servidor Next.js automaticamente)..."
+npm run cypress:run:e2e
 if [ $? -ne 0 ]; then
   echo "❌ Testes E2E falharam!"
   exit 1
@@ -160,16 +190,16 @@ echo ✅ Testes de integração concluídos com sucesso!
 
 REM Executar testes de componentes
 echo 🧩 Executando testes de componentes...
-npx cypress run --component
+npm run cypress:run:component
 if %errorlevel% neq 0 (
   echo ❌ Testes de componentes falharam!
   exit /b 1
 )
 echo ✅ Testes de componentes concluídos com sucesso!
 
-REM Executar testes E2E
-echo 🌐 Executando testes E2E...
-npx cypress run --e2e
+REM Executar testes E2E (com servidor automático)
+echo 🌐 Executando testes E2E (iniciando servidor Next.js automaticamente)...
+npm run cypress:run:e2e
 if %errorlevel% neq 0 (
   echo ❌ Testes E2E falharam!
   exit /b 1
@@ -246,10 +276,10 @@ jobs:
         run: npm test __tests__/integration/
 
       - name: Executar testes de componente
-        run: npx cypress run --component
+        run: npm run cypress:run:component
 
-      - name: Executar testes E2E
-        run: npx cypress run --e2e
+      - name: Executar testes E2E (com servidor automático)
+        run: npm run cypress:run:e2e
 
       - name: Verificar cobertura mínima
         run: |
