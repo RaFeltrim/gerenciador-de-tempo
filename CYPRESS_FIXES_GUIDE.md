@@ -100,7 +100,7 @@ e2e: {
 {
   "scripts": {
     "cypress:open:e2e": "start-server-and-test dev http://localhost:3000 'cypress open --e2e'",
-    "cypress:run": "start-server-and-test dev http://localhost:3000 'cypress run'",
+    "cypress:run": "npm run cypress:run:component && npm run cypress:run:e2e",
     "cypress:run:e2e": "start-server-and-test dev http://localhost:3000 'cypress run --e2e'",
     "cypress:run:component": "cypress run --component"
   }
@@ -140,11 +140,14 @@ npm run cypress:run:e2e
 # Abrir interface do Cypress para testes E2E (COM servidor automático)
 npm run cypress:open:e2e
 
-# Executar TODOS os testes Cypress (E2E + Componente)
+# Executar TODOS os testes Cypress (Componente primeiro, depois E2E)
 npm run cypress:run
 ```
 
-**Importante:** Os scripts E2E agora iniciam automaticamente o servidor Next.js antes dos testes.
+**Importante:**
+
+- Os scripts E2E agora iniciam automaticamente o servidor Next.js antes dos testes
+- O script `cypress:run` executa primeiro os testes de componente (sem servidor), depois os E2E (com servidor)
 
 ### Alternativa Manual (para debugging)
 

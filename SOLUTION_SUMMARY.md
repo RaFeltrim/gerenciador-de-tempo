@@ -83,7 +83,7 @@ e2e: {
 ```json
 "scripts": {
   "cypress:open:e2e": "start-server-and-test dev http://localhost:3000 'cypress open --e2e'",
-  "cypress:run": "start-server-and-test dev http://localhost:3000 'cypress run'",
+  "cypress:run": "npm run cypress:run:component && npm run cypress:run:e2e",
   "cypress:run:e2e": "start-server-and-test dev http://localhost:3000 'cypress run --e2e'",
   "cypress:run:component": "cypress run --component"
 }
@@ -169,7 +169,7 @@ npm run cypress:run:e2e
 # Modo interativo (COM servidor automático)
 npm run cypress:open:e2e
 
-# Todos os testes Cypress
+# Todos os testes Cypress (componente primeiro, depois E2E)
 npm run cypress:run
 ```
 
