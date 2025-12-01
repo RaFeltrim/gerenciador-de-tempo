@@ -12,6 +12,9 @@ export default defineConfig({
     viewportHeight: 720,
     video: false,
     screenshotOnRunFailure: true,
+    defaultCommandTimeout: 10000,
+    pageLoadTimeout: 60000,
+    requestTimeout: 10000,
   },
 
   component: {
@@ -21,6 +24,7 @@ export default defineConfig({
     },
     specPattern: 'cypress/component/**/*.cy.{js,jsx,ts,tsx}',
     supportFile: 'cypress/support/component.ts',
+    indexHtmlFile: 'cypress/support/component-index.html',
     viewportWidth: 1280,
     viewportHeight: 720,
   },
