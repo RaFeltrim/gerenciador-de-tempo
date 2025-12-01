@@ -13,7 +13,7 @@
     "cypress:open": "cypress open",
     "cypress:open:e2e": "start-server-and-test dev http://localhost:3000 'cypress open --e2e'",
     "cypress:open:component": "cypress open --component",
-    "cypress:run": "start-server-and-test dev http://localhost:3000 'cypress run'",
+    "cypress:run": "npm run cypress:run:component && npm run cypress:run:e2e",
     "cypress:run:e2e": "start-server-and-test dev http://localhost:3000 'cypress run --e2e'",
     "cypress:run:component": "cypress run --component",
     "test:robot": "robot tests/robot/",

@@ -16,7 +16,7 @@
 
 ### 2. Testes de Componente - Erro ENOENT
 
-**Problema:** `Error: ENOENT: no such file or directory, utime '...cypress\support\component-index.html'`
+**Problema:** `Error: ENOENT: no such file or directory, utime '.../cypress/support/component-index.html'`
 
 **Solução:**
 
@@ -36,10 +36,12 @@ npm run cypress:run:component
 npm run cypress:run:e2e
 ```
 
-### Todos os Testes Cypress
+### Todos os Testes Cypress (Componente + E2E)
 
 ```bash
 npm run cypress:run
+# Executa primeiro testes de componente (sem servidor)
+# Depois testes E2E (com servidor automático)
 ```
 
 ### Modo Interativo (com servidor automático)
