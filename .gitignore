@@ -27,3 +27,24 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# Cypress
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
+
+# Robot Framework
+robot-results/
+log.html
+output.xml
+report.html
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
