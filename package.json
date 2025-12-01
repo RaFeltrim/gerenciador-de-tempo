@@ -16,6 +16,8 @@
     "cypress:run": "cypress run",
     "cypress:run:e2e": "cypress run --e2e",
     "cypress:run:component": "cypress run --component",
+    "test:robot": "robot tests/robot/",
+    "test:robot:parse-task": "robot tests/robot/parse-task-api.robot",
     "prepare": "husky"
   },
   "dependencies": {

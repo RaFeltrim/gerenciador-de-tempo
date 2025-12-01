@@ -1,0 +1,4 @@
+# Robot Framework and dependencies for API testing
+robotframework==7.0
+robotframework-requests==0.9.7
+requests==2.31.0
