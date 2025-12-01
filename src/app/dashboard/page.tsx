@@ -135,6 +135,8 @@ export default function Dashboard() {
   const [editForm, setEditForm] = useState<Partial<Task>>({});
   const [activeTab, setActiveTab] = useState<'local' | 'google'>('local');
   const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrencePattern, setRecurrencePattern] = useState<RecurrencePattern>('daily');
 
   // Fetch Google Tasks
   const fetchGoogleTasks = useCallback(async () => {
@@ -395,8 +397,8 @@ export default function Dashboard() {
       createdAt: new Date().toISOString(),
       category: selectedCategory || null,
       tags: tags,
-      isRecurring: parsedTask?.isRecurring || false,
-      recurrencePattern: parsedTask?.recurrencePattern || null,
+      isRecurring: parsedTask?.isRecurring || isRecurring,
+      recurrencePattern: parsedTask?.recurrencePattern || (isRecurring ? recurrencePattern : null),
       parentTaskId: null,
       googleTaskId: null,
     };
@@ -406,6 +408,8 @@ export default function Dashboard() {
     setCustomTime('');
     setSelectedCategory('');
     setTagInput('');
+    setIsRecurring(false);
+    setRecurrencePattern('daily');
     setShowQuickAdd(false);
     
     // Sync with Google Calendar and Tasks
@@ -830,43 +834,72 @@ export default function Dashboard() {
               </div>
               
               {showQuickAdd && (
-                <div className="mt-4 pt-4 border-t border-gray-100 grid sm:grid-cols-3 gap-3">
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={customTime}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (value === '' || (parseInt(value, 10) >= 1 && parseInt(value, 10) <= 480)) {
-                          setCustomTime(value);
-                        }
-                      }}
-                      placeholder="Duração (min)"
-                      className="w-full input-modern pr-10 text-sm h-12" // Added h-12
-                      min="1"
-                      max="480"
-                    />
-                    <Clock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
+                  <div className="grid sm:grid-cols-3 gap-3">
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={customTime}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === '' || (parseInt(value, 10) >= 1 && parseInt(value, 10) <= 480)) {
+                            setCustomTime(value);
+                          }
+                        }}
+                        placeholder="Duração (min)"
+                        className="w-full input-modern pr-10 text-sm h-12" // Added h-12
+                        min="1"
+                        max="480"
+                      />
+                      <Clock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    </div>
+                    <select
+                      name="category"
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      className="input-modern text-sm h-12" // Added h-12
+                    >
+                      <option value="">Categoria...</option>
+                      {CATEGORIES.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
+                    </select>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="tags"
+                        value={tagInput}
+                        onChange={(e) => setTagInput(e.target.value)}
+                        placeholder="Tags (vírgula)"
+                        className="w-full input-modern pr-10 text-sm h-12" // Added h-12
+                      />
+                      <Tag className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    </div>
                   </div>
-                  <select
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="input-modern text-sm h-12" // Added h-12
-                  >
-                    <option value="">Categoria...</option>
-                    {CATEGORIES.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
-                  </select>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={tagInput}
-                      onChange={(e) => setTagInput(e.target.value)}
-                      placeholder="Tags (vírgula)"
-                      className="w-full input-modern pr-10 text-sm h-12" // Added h-12
-                    />
-                    <Tag className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name="isRecurring"
+                        checked={isRecurring}
+                        onChange={(e) => setIsRecurring(e.target.checked)}
+                        className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                      />
+                      <span className="text-sm text-gray-700">Tarefa recorrente</span>
+                    </label>
+                    {isRecurring && (
+                      <select
+                        name="recurrencePattern"
+                        value={recurrencePattern}
+                        onChange={(e) => setRecurrencePattern(e.target.value as RecurrencePattern)}
+                        className="input-modern text-sm h-10 flex-1"
+                      >
+                        <option value="daily">Diário</option>
+                        <option value="weekly">Semanal</option>
+                        <option value="weekdays">Dias úteis</option>
+                        <option value="monthly">Mensal</option>
+                      </select>
+                    )}
                   </div>
                 </div>
               )}
@@ -927,6 +960,7 @@ export default function Dashboard() {
                               <div className="space-y-4">
                                 <input
                                   type="text"
+                                  name="title"
                                   value={editForm.title || ''}
                                   onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
                                   className="w-full input-modern font-medium h-12"
@@ -992,6 +1026,7 @@ export default function Dashboard() {
                         return (
                           <div
                             key={task.id}
+                            data-testid="task-item"
                             className={`task-card border-l-4 ${priorityStyles.border} ${task.completed ? 'opacity-50' : ''}`}
                           >
                             <div className="flex items-start gap-3">
@@ -1054,6 +1089,7 @@ export default function Dashboard() {
                                 {!task.completed && (
                                   <>
                                     <button
+                                      data-testid="timer-button"
                                       onClick={() => startTimerForTask(task.id)}
                                       className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                                       title="Iniciar Timer"
@@ -1061,6 +1097,7 @@ export default function Dashboard() {
                                       <Timer className="h-4 w-4" />
                                     </button>
                                     <button
+                                      data-testid="edit-button"
                                       onClick={() => startEditing(task)}
                                       className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
                                       title="Editar"
@@ -1070,6 +1107,7 @@ export default function Dashboard() {
                                   </>
                                 )}
                                 <button
+                                  data-testid="delete-button"
                                   onClick={() => deleteTask(task.id)}
                                   className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                   title="Excluir"
