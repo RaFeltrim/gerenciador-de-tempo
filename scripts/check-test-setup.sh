@@ -116,7 +116,7 @@ echo ""
 
 # Check if Next.js dev server is running
 echo "🌐 Checking Next.js dev server..."
-if curl -s http://localhost:3000 > /dev/null 2>&1; then
+if curl -s --connect-timeout 5 --max-time 10 http://localhost:3000 > /dev/null 2>&1; then
     echo -e "${GREEN}✓${NC} Next.js dev server is running on http://localhost:3000"
 else
     echo -e "${YELLOW}⚠${NC} Next.js dev server is not running"
