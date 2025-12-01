@@ -33,10 +33,10 @@ describe('Login and Create Task Flow', () => {
   it('should login and create a task', () => {
     // Check that we're on the home page
     cy.contains('FocusFlow').should('be.visible');
-    cy.contains('Sign in with Google').should('be.visible');
+    cy.contains('Entrar com Google').should('be.visible');
 
     // Click the login button
-    cy.contains('Sign in with Google').click();
+    cy.contains('Entrar com Google').click();
 
     // Wait for login interception
     cy.wait('@googleLogin');
@@ -48,7 +48,7 @@ describe('Login and Create Task Flow', () => {
     cy.contains('Test User').should('be.visible');
 
     // Type task description
-    cy.get('input[placeholder*="Descreva sua tarefa"]').type('Comprar Pão');
+    cy.get('input[placeholder*="Reunião com cliente"]').type('Comprar Pão');
 
     // Click add task button
     cy.contains('Adicionar').click();
@@ -63,7 +63,7 @@ describe('Login and Create Task Flow', () => {
 
   it('should logout successfully', () => {
     // First login
-    cy.contains('Sign in with Google').click();
+    cy.contains('Entrar com Google').click();
     cy.wait('@googleLogin');
     cy.url().should('include', '/dashboard');
 
@@ -72,6 +72,6 @@ describe('Login and Create Task Flow', () => {
 
     // Check that we're back on the home page
     cy.url().should('eq', Cypress.config().baseUrl + '/');
-    cy.contains('Sign in with Google').should('be.visible');
+    cy.contains('Entrar com Google').should('be.visible');
   });
 });

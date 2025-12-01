@@ -28,7 +28,7 @@ describe('Authentication Flow', () => {
     // Should be redirected to home page
     cy.url().should('eq', `${Cypress.config().baseUrl}/`);
     
-    // Should show login page
+    // Should show login page - the home page shows "Entrar com Google" button
     cy.contains('Entrar com Google').should('be.visible');
   });
 
@@ -124,7 +124,7 @@ describe('Authenticated User Experience', () => {
     // Should redirect to home page
     cy.url().should('eq', `${Cypress.config().baseUrl}/`);
     
-    // Should show login page
+    // Should show login page - the home page shows "Entrar com Google" button
     cy.contains('Entrar com Google').should('be.visible');
   });
 
