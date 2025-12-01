@@ -666,7 +666,15 @@ export default function Dashboard() {
   const completedTasks = tasks.filter((t) => t.completed).length;
   const totalTasks = tasks.length;
 
-  const upcomingEvents = calendarEvents.slice(0, 5);
+  // Filter events to only show those starting from now onwards
+  const now = new Date();
+  const upcomingEvents = calendarEvents
+    .filter(event => {
+      const eventStartDate = event.start.dateTime || event.start.date;
+      if (!eventStartDate) return false;
+      return new Date(eventStartDate) >= now;
+    })
+    .slice(0, 5);
 
   return (
     <div className="min-h-screen gradient-bg">
