@@ -113,6 +113,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
   
   return (
     <div
+      data-testid="task-item"
       className={`border rounded-2xl p-5 transition-all hover:shadow-md ${
         task.completed 
           ? 'bg-gray-50 border-gray-200 opacity-60' 
@@ -204,6 +205,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
             <>
               {onStartTimer && (
                 <button
+                  data-testid="timer-button"
                   onClick={() => onStartTimer && onStartTimer(task.id)}
                   className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                   title="Iniciar Pomodoro para esta tarefa"
@@ -212,6 +214,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                 </button>
               )}
               <button
+                data-testid="edit-button"
                 onClick={() => onEdit(task)}
                 className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
                 title="Editar tarefa"
@@ -221,6 +224,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
             </>
           )}
           <button
+            data-testid="delete-button"
             onClick={() => onDelete(task.id)}
             className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
             title="Excluir tarefa"
