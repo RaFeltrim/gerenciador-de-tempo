@@ -232,23 +232,39 @@ export default function Dashboard() {
 
   // Fetch Google data only when session is fully authenticated
   useEffect(() => {
+    console.log('Session status changed:', status);
+    console.log('Session data:', session ? 'Available' : 'Not available');
+    console.log('Access token:', session?.accessToken ? 'Available' : 'Not available');
+    
+    // Update refs when session or status changes
+    sessionRef.current = session;
+    statusRef.current = status;
+    
     // Don't do anything while authentication is loading
     if (status === 'loading') {
+      console.log('Session still loading, waiting...');
       return;
     }
     
     // Redirect to login if not authenticated
     if (status === 'unauthenticated') {
+      console.log('User not authenticated, redirecting...');
       router.push('/');
       return;
     }
     
     // Only fetch data when fully authenticated with a valid access token
     if (status === 'authenticated' && session?.accessToken) {
-      fetchGoogleTasks();
-      fetchCalendarEvents();
+      console.log('Session authenticated, fetching Google data...');
+      // Add a small delay to ensure everything is properly initialized
+      const timer = setTimeout(() => {
+        fetchGoogleTasks();
+        fetchCalendarEvents();
+      }, 500);
+      
+      return () => clearTimeout(timer);
     }
-  }, [status, session, router, fetchGoogleTasks, fetchCalendarEvents]);
+  }, [status, session, router]);
 
   // Timer countdown
   useEffect(() => {
