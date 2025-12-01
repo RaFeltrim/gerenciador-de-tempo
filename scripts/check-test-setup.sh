@@ -103,7 +103,7 @@ if command -v pip &> /dev/null || command -v pip3 &> /dev/null; then
     echo -e "${GREEN}✓${NC} pip is installed"
     
     # Check Robot Framework
-    if $PIP_CMD list 2>/dev/null | grep -q "robotframework"; then
+    if $PIP_CMD list 2>/dev/null | grep -q "^robotframework "; then
         echo -e "${GREEN}✓${NC} Robot Framework is installed"
     else
         echo -e "${YELLOW}⚠${NC} Robot Framework is not installed"

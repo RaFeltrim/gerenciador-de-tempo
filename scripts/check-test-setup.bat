@@ -1,4 +1,5 @@
 @echo off
+setlocal enabledelayedexpansion
 REM Check Test Setup Script for Windows
 REM This script verifies that the testing environment is properly configured
 
