@@ -15,6 +15,8 @@
   <a href="#testing"><img src="https://img.shields.io/badge/testing-%F0%9F§9A-orange" alt="Testing"></a>
   <a href="https://github.com/RaFeltrim/gerenciador-de-tempo/issues"><img src="https://img.shields.io/github/issues/RaFeltrim/gerenciador-de-tempo" alt="GitHub Issues"></a>
   <a href="https://github.com/RaFeltrim/gerenciador-de-tempo/blob/main/LICENSE"><img src="https://img.shields.io/github/license/RaFeltrim/gerenciador-de-tempo" alt="GitHub License"></a>
+  <a href="./CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome"></a>
+  <a href="./SECURITY.md"><img src="https://img.shields.io/badge/security-policy-blue.svg" alt="Security Policy"></a>
 </p>
 
 <br>
@@ -215,13 +217,29 @@ All tests are automatically run before each commit using Husky and lint-staged.
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please follow these steps:
+Contributions are welcome! We appreciate your help in making FocusFlow better.
 
+**Please read our [Contributing Guidelines](CONTRIBUTING.md) for:**
+- Code of conduct
+- Development workflow
+- Coding standards
+- Testing guidelines
+- Pull request process
+
+Quick start for contributors:
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+3. Commit your changes (`git commit -m 'feat: add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
+
+## 🔒 Security
+
+Security is a top priority. If you discover a security vulnerability:
+
+- **Do not** open a public issue
+- Report privately via [GitHub Security Advisories](https://github.com/RaFeltrim/gerenciador-de-tempo/security/advisories/new)
+- See our [Security Policy](SECURITY.md) for more details
 
 ## 📄 License
 
