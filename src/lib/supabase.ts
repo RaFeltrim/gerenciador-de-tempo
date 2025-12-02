@@ -52,18 +52,18 @@ export const taskOperations = {
   async getTasks(userEmail: string): Promise<DbTask[]> {
     const client = getSupabaseClient();
     if (!client) return [];
-    
+
     const { data, error } = await client
       .from('tasks')
       .select('*')
       .eq('user_email', userEmail)
       .order('created_at', { ascending: false });
-    
+
     if (error) {
       console.error('Error fetching tasks:', error);
       return [];
     }
-    
+
     return data || [];
   },
 
@@ -71,7 +71,7 @@ export const taskOperations = {
   async createTask(task: Omit<DbTask, 'created_at' | 'updated_at'>): Promise<DbTask | null> {
     const client = getSupabaseClient();
     if (!client) return null;
-    
+
     const { data, error } = await client
       .from('tasks')
       .insert({
@@ -81,20 +81,24 @@ export const taskOperations = {
       })
       .select()
       .single();
-    
+
     if (error) {
       console.error('Error creating task:', error);
       return null;
     }
-    
+
     return data;
   },
 
   // Update a task
-  async updateTask(id: string, userEmail: string, updates: Partial<DbTask>): Promise<DbTask | null> {
+  async updateTask(
+    id: string,
+    userEmail: string,
+    updates: Partial<DbTask>
+  ): Promise<DbTask | null> {
     const client = getSupabaseClient();
     if (!client) return null;
-    
+
     const { data, error } = await client
       .from('tasks')
       .update({
@@ -105,12 +109,12 @@ export const taskOperations = {
       .eq('user_email', userEmail)
       .select()
       .single();
-    
+
     if (error) {
       console.error('Error updating task:', error);
       return null;
     }
-    
+
     return data;
   },
 
@@ -118,28 +122,30 @@ export const taskOperations = {
   async deleteTask(id: string, userEmail: string): Promise<boolean> {
     const client = getSupabaseClient();
     if (!client) return false;
-    
-    const { error } = await client
-      .from('tasks')
-      .delete()
-      .eq('id', id)
-      .eq('user_email', userEmail);
-    
+
+    const { error } = await client.from('tasks').delete().eq('id', id).eq('user_email', userEmail);
+
     if (error) {
       console.error('Error deleting task:', error);
       return false;
     }
-    
+
     return true;
   },
 
   // Toggle task completion
-  async toggleTaskCompletion(id: string, userEmail: string, completed: boolean): Promise<DbTask | null> {
+  async toggleTaskCompletion(
+    id: string,
+    userEmail: string,
+    completed: boolean
+  ): Promise<DbTask | null> {
     return this.updateTask(id, userEmail, { completed });
   },
 
   // Complete a recurring task and create next occurrence
-  async completeRecurringTask(task: DbTask): Promise<{ completedTask: DbTask | null; nextTask: DbTask | null }> {
+  async completeRecurringTask(
+    task: DbTask
+  ): Promise<{ completedTask: DbTask | null; nextTask: DbTask | null }> {
     const client = getSupabaseClient();
     if (!client) return { completedTask: null, nextTask: null };
 

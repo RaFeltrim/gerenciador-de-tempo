@@ -8,46 +8,61 @@ jest.mock('../../src/lib/date-validation', () => ({
   isValidDate: (day: number, month: number, year: number) => {
     // Simple implementation for testing
     const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    
+
     // Check leap year for February
-    const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+    const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
     if (month === 2 && isLeapYear) {
       return day >= 1 && day <= 29;
     }
-    
+
     if (month < 1 || month > 12 || day < 1) return false;
     return day <= daysInMonth[month - 1];
-  }
+  },
 }));
 
 describe('Parse Task Logic', () => {
   describe('Priority Extraction', () => {
     const extractPriority = (text: string): 'high' | 'medium' | 'low' => {
       const lowerText = text.toLowerCase();
-      
+
       const highPriorityKeywords = [
-        'urgente', 'urgência', 'importante', 'crítico', 'crítica',
-        'prioridade alta', 'alta prioridade', 'asap', 'imediato',
-        'imediatamente', 'hoje', 'agora', '!!'
+        'urgente',
+        'urgência',
+        'importante',
+        'crítico',
+        'crítica',
+        'prioridade alta',
+        'alta prioridade',
+        'asap',
+        'imediato',
+        'imediatamente',
+        'hoje',
+        'agora',
+        '!!',
       ];
-      
+
       const lowPriorityKeywords = [
-        'baixa prioridade', 'prioridade baixa', 'quando possível',
-        'quando puder', 'sem pressa', 'eventualmente', 'opcional'
+        'baixa prioridade',
+        'prioridade baixa',
+        'quando possível',
+        'quando puder',
+        'sem pressa',
+        'eventualmente',
+        'opcional',
       ];
-      
+
       for (const keyword of highPriorityKeywords) {
         if (lowerText.includes(keyword)) {
           return 'high';
         }
       }
-      
+
       for (const keyword of lowPriorityKeywords) {
         if (lowerText.includes(keyword)) {
           return 'low';
         }
       }
-      
+
       return 'medium';
     };
 
@@ -99,16 +114,16 @@ describe('Parse Task Logic', () => {
   describe('Time Extraction', () => {
     const extractTime = (text: string): number | null => {
       const lowerText = text.toLowerCase();
-      
+
       const patterns = [
         { regex: /(\d+)\s*(?:hora|horas|h)\b/, multiplier: 60 },
         { regex: /(\d+)\s*(?:minuto|minutos|min)\b/, multiplier: 1 },
         { regex: /(\d+)\s*(?:pomodoro|pomodoros)\b/, multiplier: 25 },
       ];
-      
+
       let totalMinutes = 0;
       let found = false;
-      
+
       for (const pattern of patterns) {
         const match = lowerText.match(pattern.regex);
         if (match) {
@@ -116,21 +131,21 @@ describe('Parse Task Logic', () => {
           found = true;
         }
       }
-      
+
       const defaultDurations: Record<string, number> = {
-        'reunião': 60,
-        'reuniao': 60,
-        'meeting': 60,
-        'call': 30,
-        'ligação': 30,
-        'ligacao': 30,
-        'email': 15,
+        reunião: 60,
+        reuniao: 60,
+        meeting: 60,
+        call: 30,
+        ligação: 30,
+        ligacao: 30,
+        email: 15,
         'e-mail': 15,
-        'review': 30,
-        'revisão': 30,
-        'revisao': 30,
+        review: 30,
+        revisão: 30,
+        revisao: 30,
       };
-      
+
       if (!found) {
         for (const [keyword, duration] of Object.entries(defaultDurations)) {
           if (lowerText.includes(keyword)) {
@@ -138,7 +153,7 @@ describe('Parse Task Logic', () => {
           }
         }
       }
-      
+
       return found ? totalMinutes : null;
     };
 
@@ -181,76 +196,123 @@ describe('Parse Task Logic', () => {
 
   describe('Recurrence Extraction', () => {
     type RecurrencePattern = 'daily' | 'weekly' | 'monthly' | 'weekdays' | null;
-    
-    const extractRecurrence = (text: string): { isRecurring: boolean; pattern: RecurrencePattern } => {
+
+    const extractRecurrence = (
+      text: string
+    ): { isRecurring: boolean; pattern: RecurrencePattern } => {
       const lowerText = text.toLowerCase();
-      
+
       const dailyPatterns = [
-        'todo dia', 'todos os dias', 'diariamente', 'diário', 'diaria',
-        'every day', 'daily', 'cada dia'
+        'todo dia',
+        'todos os dias',
+        'diariamente',
+        'diário',
+        'diaria',
+        'every day',
+        'daily',
+        'cada dia',
       ];
-      
+
       const weeklyPatterns = [
-        'toda semana', 'todas as semanas', 'semanalmente', 'semanal',
-        'every week', 'weekly', 'cada semana'
+        'toda semana',
+        'todas as semanas',
+        'semanalmente',
+        'semanal',
+        'every week',
+        'weekly',
+        'cada semana',
       ];
-      
+
       const monthlyPatterns = [
-        'todo mês', 'todos os meses', 'mensalmente', 'mensal',
-        'every month', 'monthly', 'cada mês'
+        'todo mês',
+        'todos os meses',
+        'mensalmente',
+        'mensal',
+        'every month',
+        'monthly',
+        'cada mês',
       ];
-      
+
       const weekdaysPatterns = [
-        'dias úteis', 'dias uteis', 'dia útil', 'dia util',
-        'de segunda a sexta', 'segunda a sexta', 'weekdays'
+        'dias úteis',
+        'dias uteis',
+        'dia útil',
+        'dia util',
+        'de segunda a sexta',
+        'segunda a sexta',
+        'weekdays',
       ];
-      
+
       for (const pattern of dailyPatterns) {
         if (lowerText.includes(pattern)) {
           return { isRecurring: true, pattern: 'daily' };
         }
       }
-      
+
       for (const pattern of weekdaysPatterns) {
         if (lowerText.includes(pattern)) {
           return { isRecurring: true, pattern: 'weekdays' };
         }
       }
-      
+
       for (const pattern of weeklyPatterns) {
         if (lowerText.includes(pattern)) {
           return { isRecurring: true, pattern: 'weekly' };
         }
       }
-      
+
       for (const pattern of monthlyPatterns) {
         if (lowerText.includes(pattern)) {
           return { isRecurring: true, pattern: 'monthly' };
         }
       }
-      
+
       return { isRecurring: false, pattern: null };
     };
 
     it('should detect daily recurrence', () => {
-      expect(extractRecurrence('Exercício todo dia')).toEqual({ isRecurring: true, pattern: 'daily' });
-      expect(extractRecurrence('Meditação diariamente')).toEqual({ isRecurring: true, pattern: 'daily' });
+      expect(extractRecurrence('Exercício todo dia')).toEqual({
+        isRecurring: true,
+        pattern: 'daily',
+      });
+      expect(extractRecurrence('Meditação diariamente')).toEqual({
+        isRecurring: true,
+        pattern: 'daily',
+      });
       expect(extractRecurrence('Tarefa diário')).toEqual({ isRecurring: true, pattern: 'daily' });
     });
 
     it('should detect weekly recurrence', () => {
-      expect(extractRecurrence('Reunião toda semana')).toEqual({ isRecurring: true, pattern: 'weekly' });
-      expect(extractRecurrence('Limpar casa semanalmente')).toEqual({ isRecurring: true, pattern: 'weekly' });
+      expect(extractRecurrence('Reunião toda semana')).toEqual({
+        isRecurring: true,
+        pattern: 'weekly',
+      });
+      expect(extractRecurrence('Limpar casa semanalmente')).toEqual({
+        isRecurring: true,
+        pattern: 'weekly',
+      });
     });
 
     it('should detect monthly recurrence', () => {
-      expect(extractRecurrence('Pagar aluguel todo mês')).toEqual({ isRecurring: true, pattern: 'monthly' });
-      expect(extractRecurrence('Relatório mensal')).toEqual({ isRecurring: true, pattern: 'monthly' });
+      expect(extractRecurrence('Pagar aluguel todo mês')).toEqual({
+        isRecurring: true,
+        pattern: 'monthly',
+      });
+      expect(extractRecurrence('Relatório mensal')).toEqual({
+        isRecurring: true,
+        pattern: 'monthly',
+      });
     });
 
     it('should detect weekdays recurrence', () => {
-      expect(extractRecurrence('Standup dias úteis')).toEqual({ isRecurring: true, pattern: 'weekdays' });
-      expect(extractRecurrence('Check-in de segunda a sexta')).toEqual({ isRecurring: true, pattern: 'weekdays' });
+      expect(extractRecurrence('Standup dias úteis')).toEqual({
+        isRecurring: true,
+        pattern: 'weekdays',
+      });
+      expect(extractRecurrence('Check-in de segunda a sexta')).toEqual({
+        isRecurring: true,
+        pattern: 'weekdays',
+      });
     });
 
     it('should return no recurrence for non-recurring tasks', () => {
@@ -261,7 +323,7 @@ describe('Parse Task Logic', () => {
   describe('Title Extraction', () => {
     const extractTitle = (text: string): string => {
       let title = text;
-      
+
       const patternsToRemove = [
         /\b(urgente|importante|crítico|crítica|alta prioridade|baixa prioridade)\b/gi,
         /\b(hoje|amanhã|amanha|próxima semana|proxima semana)\b/gi,
@@ -273,21 +335,21 @@ describe('Parse Task Logic', () => {
         /\b(toda semana|todas as semanas|semanalmente|semanal)\b/gi,
         /\b(todo mês|todos os meses|mensalmente|mensal)\b/gi,
       ];
-      
+
       for (const pattern of patternsToRemove) {
         title = title.replace(pattern, '');
       }
-      
+
       title = title.replace(/\s+/g, ' ').trim();
-      
+
       if (title.length > 0) {
         title = title.charAt(0).toUpperCase() + title.slice(1);
       }
-      
+
       if (title.length < 3) {
         title = text.substring(0, 50) + (text.length > 50 ? '...' : '');
       }
-      
+
       return title;
     };
 

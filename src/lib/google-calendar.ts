@@ -16,7 +16,7 @@ export const getGoogleCalendarClient = (accessToken: string) => {
 // Get upcoming events from Google Calendar
 export const getUpcomingEvents = async (accessToken: string, maxResults = 10) => {
   const calendar = getGoogleCalendarClient(accessToken);
-  
+
   const res = await calendar.events.list({
     calendarId: 'primary',
     timeMin: new Date().toISOString(),
@@ -31,7 +31,7 @@ export const getUpcomingEvents = async (accessToken: string, maxResults = 10) =>
 // Create a new event in Google Calendar
 export const createEvent = async (accessToken: string, event: any) => {
   const calendar = getGoogleCalendarClient(accessToken);
-  
+
   const res = await calendar.events.insert({
     calendarId: 'primary',
     requestBody: event,
@@ -43,7 +43,7 @@ export const createEvent = async (accessToken: string, event: any) => {
 // Update an existing event in Google Calendar
 export const updateEvent = async (accessToken: string, eventId: string, event: any) => {
   const calendar = getGoogleCalendarClient(accessToken);
-  
+
   const res = await calendar.events.update({
     calendarId: 'primary',
     eventId: eventId,
@@ -56,7 +56,7 @@ export const updateEvent = async (accessToken: string, eventId: string, event: a
 // Delete an event from Google Calendar
 export const deleteEvent = async (accessToken: string, eventId: string) => {
   const calendar = getGoogleCalendarClient(accessToken);
-  
+
   await calendar.events.delete({
     calendarId: 'primary',
     eventId: eventId,

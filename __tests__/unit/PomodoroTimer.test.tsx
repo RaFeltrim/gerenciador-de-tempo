@@ -54,69 +54,69 @@ describe('PomodoroTimer Component', () => {
   describe('Timer Functionality', () => {
     it('should start counting down when Iniciar is clicked', () => {
       render(<PomodoroTimer initialTime={10} />); // 10 seconds
-      
+
       expect(screen.getByText('00:10')).toBeInTheDocument();
-      
+
       fireEvent.click(screen.getByText('Iniciar'));
-      
+
       act(() => {
         jest.advanceTimersByTime(1000); // Advance 1 second
       });
-      
+
       expect(screen.getByText('00:09')).toBeInTheDocument();
     });
 
     it('should show Pausar button when timer is running', () => {
       render(<PomodoroTimer initialTime={10} />);
-      
+
       fireEvent.click(screen.getByText('Iniciar'));
-      
+
       expect(screen.getByText('Pausar')).toBeInTheDocument();
     });
 
     it('should stop counting when Pausar is clicked', () => {
       render(<PomodoroTimer initialTime={10} />);
-      
+
       fireEvent.click(screen.getByText('Iniciar'));
-      
+
       act(() => {
         jest.advanceTimersByTime(2000); // Advance 2 seconds
       });
-      
+
       expect(screen.getByText('00:08')).toBeInTheDocument();
-      
+
       fireEvent.click(screen.getByText('Pausar'));
-      
+
       act(() => {
         jest.advanceTimersByTime(2000); // Advance 2 more seconds
       });
-      
+
       // Timer should still show 8 seconds (not counting)
       expect(screen.getByText('00:08')).toBeInTheDocument();
     });
 
     it('should reset timer when Resetar is clicked', () => {
       render(<PomodoroTimer initialTime={10} />);
-      
+
       fireEvent.click(screen.getByText('Iniciar'));
-      
+
       act(() => {
         jest.advanceTimersByTime(3000); // Advance 3 seconds
       });
-      
+
       expect(screen.getByText('00:07')).toBeInTheDocument();
-      
+
       fireEvent.click(screen.getByText('Resetar'));
-      
+
       expect(screen.getByText('00:10')).toBeInTheDocument();
     });
 
     it('should stop running when Resetar is clicked during countdown', () => {
       render(<PomodoroTimer initialTime={10} />);
-      
+
       fireEvent.click(screen.getByText('Iniciar'));
       fireEvent.click(screen.getByText('Resetar'));
-      
+
       expect(screen.getByText('Iniciar')).toBeInTheDocument();
     });
   });
@@ -125,38 +125,38 @@ describe('PomodoroTimer Component', () => {
     it('should call onTimerEnd when timer reaches 0', () => {
       const mockOnTimerEnd = jest.fn();
       render(<PomodoroTimer initialTime={2} onTimerEnd={mockOnTimerEnd} />);
-      
+
       fireEvent.click(screen.getByText('Iniciar'));
-      
+
       act(() => {
         jest.advanceTimersByTime(2000); // Advance 2 seconds to reach 0
       });
-      
+
       expect(mockOnTimerEnd).toHaveBeenCalledTimes(1);
     });
 
     it('should stop running when timer reaches 0', () => {
       render(<PomodoroTimer initialTime={2} />);
-      
+
       fireEvent.click(screen.getByText('Iniciar'));
-      
+
       act(() => {
         jest.advanceTimersByTime(2000);
       });
-      
+
       expect(screen.getByText('00:00')).toBeInTheDocument();
       expect(screen.getByText('Iniciar')).toBeInTheDocument();
     });
 
     it('should display 00:00 when completed', () => {
       render(<PomodoroTimer initialTime={1} />);
-      
+
       fireEvent.click(screen.getByText('Iniciar'));
-      
+
       act(() => {
         jest.advanceTimersByTime(1000);
       });
-      
+
       expect(screen.getByText('00:00')).toBeInTheDocument();
     });
   });
