@@ -1,7 +1,7 @@
 describe('Login and Create Task Flow', () => {
   beforeEach(() => {
     cy.log('🔄 Preparando ambiente de teste para login e criação de tarefa');
-    
+
     // Intercept Google login request and mock successful login
     cy.log('🔧 Configurando mock de login do Google');
     cy.intercept('POST', '/api/auth/callback/google', {
@@ -37,7 +37,7 @@ describe('Login and Create Task Flow', () => {
 
   it('should login and create a task', () => {
     cy.log('✅ Teste: Realizar login e criar uma tarefa');
-    
+
     // Check that we're on the home page
     cy.log('🔍 Verificando elementos da página inicial');
     cy.contains('FocusFlow', { timeout: 10000 })
@@ -59,7 +59,7 @@ describe('Login and Create Task Flow', () => {
     cy.log('🔍 Verificando redirecionamento para o dashboard');
     cy.url({ timeout: 10000 })
       .should('include', '/dashboard')
-      .then((url) => cy.log(`✔️ Redirecionado para: ${url}`));
+      .then(url => cy.log(`✔️ Redirecionado para: ${url}`));
 
     // Check that user is logged in
     cy.log('🔍 Verificando se usuário está logado');
@@ -93,13 +93,13 @@ describe('Login and Create Task Flow', () => {
     cy.contains('Ir ao mercado comprar pão', { timeout: 10000 })
       .should('be.visible')
       .then(() => cy.log('✔️ Descrição da tarefa exibida'));
-    
+
     cy.log('✅ Teste concluído com sucesso');
   });
 
   it('should logout successfully', () => {
     cy.log('✅ Teste: Realizar logout com sucesso');
-    
+
     // First login
     cy.log('🖱️ Realizando login');
     cy.contains('Entrar com Google', { timeout: 10000 }).click();
@@ -121,11 +121,11 @@ describe('Login and Create Task Flow', () => {
     cy.log('🔍 Verificando retorno à página inicial');
     cy.url({ timeout: 10000 })
       .should('eq', Cypress.config().baseUrl + '/')
-      .then((url) => cy.log(`✔️ Retornou para: ${url}`));
+      .then(url => cy.log(`✔️ Retornou para: ${url}`));
     cy.contains('Entrar com Google', { timeout: 10000 })
       .should('be.visible')
       .then(() => cy.log('✔️ Botão de login visível'));
-    
+
     cy.log('✅ Teste concluído com sucesso');
   });
 });

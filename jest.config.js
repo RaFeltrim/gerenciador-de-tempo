@@ -6,11 +6,7 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/src/$1',
     '\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
-  testPathIgnorePatterns: [
-    '<rootDir>/.next/',
-    '<rootDir>/node_modules/',
-    '<rootDir>/cypress/',
-  ],
+  testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/', '<rootDir>/cypress/'],
   transform: {
     '^.+\.(ts|tsx)$': [
       'ts-jest',
@@ -19,8 +15,5 @@ module.exports = {
       },
     ],
   },
-  collectCoverageFrom: [
-    'src/**/*.{ts,tsx}',
-    '!src/**/*.d.ts',
-  ],
+  collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.d.ts'],
 };
