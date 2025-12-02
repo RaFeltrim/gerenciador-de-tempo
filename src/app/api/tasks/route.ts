@@ -8,15 +8,15 @@ import { validateISODateString } from '../../../lib/date-validation';
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     if (!isSupabaseConfigured()) {
-      return NextResponse.json({ 
-        tasks: [], 
-        message: 'Supabase not configured - tasks are stored locally' 
+      return NextResponse.json({
+        tasks: [],
+        message: 'Supabase not configured - tasks are stored locally',
       });
     }
 
@@ -32,20 +32,34 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     if (!isSupabaseConfigured()) {
-      return NextResponse.json({ 
-        error: 'Supabase not configured',
-        message: 'Tasks will be stored locally in browser'
-      }, { status: 503 });
+      return NextResponse.json(
+        {
+          error: 'Supabase not configured',
+          message: 'Tasks will be stored locally in browser',
+        },
+        { status: 503 }
+      );
     }
 
     const body = await request.json();
-    const { id, title, description, priority, estimatedTime, dueDate, category, tags, isRecurring, recurrencePattern } = body;
+    const {
+      id,
+      title,
+      description,
+      priority,
+      estimatedTime,
+      dueDate,
+      category,
+      tags,
+      isRecurring,
+      recurrencePattern,
+    } = body;
 
     if (!title) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
@@ -54,9 +68,14 @@ export async function POST(request: NextRequest) {
     // Validate the due date if provided
     const dateValidation = validateISODateString(dueDate);
     if (!dateValidation.valid) {
-      return NextResponse.json({ 
-        error: dateValidation.error || 'A data inserida não existe no calendário (ex: 31 de Novembro).'
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error:
+            dateValidation.error ||
+            'A data inserida não existe no calendário (ex: 31 de Novembro).',
+        },
+        { status: 400 }
+      );
     }
 
     const task = await taskOperations.createTask({
@@ -90,16 +109,19 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     if (!isSupabaseConfigured()) {
-      return NextResponse.json({ 
-        error: 'Supabase not configured',
-        message: 'Tasks will be stored locally in browser'
-      }, { status: 503 });
+      return NextResponse.json(
+        {
+          error: 'Supabase not configured',
+          message: 'Tasks will be stored locally in browser',
+        },
+        { status: 503 }
+      );
     }
 
     const body = await request.json();
@@ -113,9 +135,14 @@ export async function PUT(request: NextRequest) {
     if (updates.dueDate !== undefined) {
       const dateValidation = validateISODateString(updates.dueDate);
       if (!dateValidation.valid) {
-        return NextResponse.json({ 
-          error: dateValidation.error || 'A data inserida não existe no calendário (ex: 31 de Novembro).'
-        }, { status: 400 });
+        return NextResponse.json(
+          {
+            error:
+              dateValidation.error ||
+              'A data inserida não existe no calendário (ex: 31 de Novembro).',
+          },
+          { status: 400 }
+        );
       }
     }
 
@@ -130,7 +157,8 @@ export async function PUT(request: NextRequest) {
     if (updates.category !== undefined) dbUpdates.category = updates.category;
     if (updates.tags !== undefined) dbUpdates.tags = updates.tags;
     if (updates.isRecurring !== undefined) dbUpdates.is_recurring = updates.isRecurring;
-    if (updates.recurrencePattern !== undefined) dbUpdates.recurrence_pattern = updates.recurrencePattern;
+    if (updates.recurrencePattern !== undefined)
+      dbUpdates.recurrence_pattern = updates.recurrencePattern;
 
     const task = await taskOperations.updateTask(id, session.user.email, dbUpdates);
 
@@ -149,16 +177,19 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     if (!isSupabaseConfigured()) {
-      return NextResponse.json({ 
-        error: 'Supabase not configured',
-        message: 'Tasks will be stored locally in browser'
-      }, { status: 503 });
+      return NextResponse.json(
+        {
+          error: 'Supabase not configured',
+          message: 'Tasks will be stored locally in browser',
+        },
+        { status: 503 }
+      );
     }
 
     const { searchParams } = new URL(request.url);

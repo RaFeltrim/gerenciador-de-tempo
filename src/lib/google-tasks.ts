@@ -16,7 +16,7 @@ export const getGoogleTasksClient = (accessToken: string) => {
 // Get all task lists
 export const getTaskLists = async (accessToken: string) => {
   const tasks = getGoogleTasksClient(accessToken);
-  
+
   const res = await tasks.tasklists.list({
     maxResults: 100,
   });
@@ -25,9 +25,13 @@ export const getTaskLists = async (accessToken: string) => {
 };
 
 // Get tasks from a specific task list (defaults to primary "@default")
-export const getTasks = async (accessToken: string, taskListId = '@default', showCompleted = true) => {
+export const getTasks = async (
+  accessToken: string,
+  taskListId = '@default',
+  showCompleted = true
+) => {
   const tasks = getGoogleTasksClient(accessToken);
-  
+
   const res = await tasks.tasks.list({
     tasklist: taskListId,
     showCompleted: showCompleted,
@@ -40,7 +44,7 @@ export const getTasks = async (accessToken: string, taskListId = '@default', sho
 
 // Create a new task
 export const createTask = async (
-  accessToken: string, 
+  accessToken: string,
   task: {
     title: string;
     notes?: string;
@@ -50,7 +54,7 @@ export const createTask = async (
   taskListId = '@default'
 ) => {
   const tasks = getGoogleTasksClient(accessToken);
-  
+
   const res = await tasks.tasks.insert({
     tasklist: taskListId,
     requestBody: {
@@ -66,7 +70,7 @@ export const createTask = async (
 
 // Update an existing task
 export const updateTask = async (
-  accessToken: string, 
+  accessToken: string,
   taskId: string,
   updates: {
     title?: string;
@@ -77,7 +81,7 @@ export const updateTask = async (
   taskListId = '@default'
 ) => {
   const tasks = getGoogleTasksClient(accessToken);
-  
+
   const res = await tasks.tasks.patch({
     tasklist: taskListId,
     task: taskId,
@@ -90,7 +94,7 @@ export const updateTask = async (
 // Delete a task
 export const deleteTask = async (accessToken: string, taskId: string, taskListId = '@default') => {
   const tasks = getGoogleTasksClient(accessToken);
-  
+
   await tasks.tasks.delete({
     tasklist: taskListId,
     task: taskId,
@@ -98,7 +102,11 @@ export const deleteTask = async (accessToken: string, taskId: string, taskListId
 };
 
 // Complete a task
-export const completeTask = async (accessToken: string, taskId: string, taskListId = '@default') => {
+export const completeTask = async (
+  accessToken: string,
+  taskId: string,
+  taskListId = '@default'
+) => {
   return updateTask(accessToken, taskId, { status: 'completed' }, taskListId);
 };
 
@@ -111,7 +119,7 @@ export const moveTask = async (
   parentTaskId?: string
 ) => {
   const tasks = getGoogleTasksClient(accessToken);
-  
+
   const res = await tasks.tasks.move({
     tasklist: taskListId,
     task: taskId,

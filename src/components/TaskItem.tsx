@@ -1,16 +1,16 @@
 import React from 'react';
-import { 
-  Calendar, 
-  Clock, 
-  Flag, 
-  Tag, 
-  Edit3, 
-  Trash2, 
-  CheckCircle2, 
+import {
+  Calendar,
+  Clock,
+  Flag,
+  Tag,
+  Edit3,
+  Trash2,
+  CheckCircle2,
   Circle,
-  Repeat
-} from "lucide-react";
-import { getRecurrenceLabel, RecurrencePattern } from "../lib/task-utils";
+  Repeat,
+} from 'lucide-react';
+import { getRecurrenceLabel, RecurrencePattern } from '../lib/task-utils';
 
 // Predefined categories
 const CATEGORIES = [
@@ -49,26 +49,22 @@ interface TaskItemProps {
 // Helper function to check if description is essentially the same as title
 const isDescriptionRedundant = (title: string, description: string): boolean => {
   if (!description || !title) return true;
-  
+
   const MIN_DESCRIPTION_LENGTH_THRESHOLD = 10;
-  
+
   // If description is significantly longer than title, it likely has additional info
   if (description.length > title.length + MIN_DESCRIPTION_LENGTH_THRESHOLD) {
     return false;
   }
-  
+
   // Normalize both strings for comparison
-  const normalizeString = (str: string) => 
-    str.toLowerCase()
-       .replace(/\s+/g, ' ')
-       .trim();
-  
+  const normalizeString = (str: string) => str.toLowerCase().replace(/\s+/g, ' ').trim();
+
   const normalizedTitle = normalizeString(title);
   const normalizedDesc = normalizeString(description);
-  
+
   // Check if description is same as title, or if they are very similar
-  return normalizedDesc === normalizedTitle || 
-         normalizedTitle === normalizedDesc;
+  return normalizedDesc === normalizedTitle || normalizedTitle === normalizedDesc;
 };
 
 // Get category info
@@ -102,22 +98,20 @@ const getPriorityBg = (priority: string) => {
   }
 };
 
-export const TaskItem: React.FC<TaskItemProps> = ({ 
-  task, 
-  onToggle, 
-  onDelete, 
+export const TaskItem: React.FC<TaskItemProps> = ({
+  task,
+  onToggle,
+  onDelete,
   onEdit,
-  onStartTimer
+  onStartTimer,
 }) => {
   const categoryInfo = getCategoryInfo(task.category);
-  
+
   return (
     <div
       data-testid="task-item"
       className={`border rounded-2xl p-5 transition-all hover:shadow-md ${
-        task.completed 
-          ? 'bg-gray-50 border-gray-200 opacity-60' 
-          : getPriorityBg(task.priority)
+        task.completed ? 'bg-gray-50 border-gray-200 opacity-60' : getPriorityBg(task.priority)
       }`}
     >
       <div className="flex items-start justify-between">
@@ -125,7 +119,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           <button
             onClick={() => onToggle(task.id)}
             className="mt-0.5 flex-shrink-0 transition-transform hover:scale-110"
-            aria-label={task.completed ? "Marcar como não concluída" : "Marcar como concluída"}
+            aria-label={task.completed ? 'Marcar como não concluída' : 'Marcar como concluída'}
           >
             {task.completed ? (
               <CheckCircle2 className="h-5 w-5 text-emerald-500" />
@@ -136,27 +130,25 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           <div className="flex-1 min-w-0">
             <h3
               className={`font-medium ${
-                task.completed
-                  ? 'line-through text-gray-400'
-                  : 'text-gray-900'
+                task.completed ? 'line-through text-gray-400' : 'text-gray-900'
               }`}
             >
               {task.title}
             </h3>
             {/* Only show description if it's meaningfully different from title */}
             {!isDescriptionRedundant(task.title, task.description) && (
-              <p className="text-sm text-gray-500 mt-1">
-                {task.description}
-              </p>
+              <p className="text-sm text-gray-500 mt-1">{task.description}</p>
             )}
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-3">
-              <span className={`flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full ${
-                task.priority === 'high' 
-                  ? 'bg-red-100 text-red-700' 
-                  : task.priority === 'medium' 
-                    ? 'bg-amber-100 text-amber-700' 
-                    : 'bg-emerald-100 text-emerald-700'
-              }`}>
+              <span
+                className={`flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full ${
+                  task.priority === 'high'
+                    ? 'bg-red-100 text-red-700'
+                    : task.priority === 'medium'
+                      ? 'bg-amber-100 text-amber-700'
+                      : 'bg-emerald-100 text-emerald-700'
+                }`}
+              >
                 <Flag className="h-3 w-3" />
                 {task.priority === 'high' ? 'Alta' : task.priority === 'medium' ? 'Média' : 'Baixa'}
               </span>
@@ -167,7 +159,9 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                 </span>
               )}
               {categoryInfo && (
-                <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${categoryInfo.color}`}>
+                <span
+                  className={`text-xs font-medium px-2.5 py-1 rounded-full ${categoryInfo.color}`}
+                >
                   {categoryInfo.name}
                 </span>
               )}
