@@ -84,15 +84,19 @@ describe('Button Component', () => {
     it('should handle click events', () => {
       const handleClick = jest.fn();
       render(<Button onClick={handleClick}>Click me</Button>);
-      
+
       fireEvent.click(screen.getByRole('button'));
       expect(handleClick).toHaveBeenCalledTimes(1);
     });
 
     it('should not trigger click when disabled', () => {
       const handleClick = jest.fn();
-      render(<Button onClick={handleClick} disabled>Disabled</Button>);
-      
+      render(
+        <Button onClick={handleClick} disabled>
+          Disabled
+        </Button>
+      );
+
       fireEvent.click(screen.getByRole('button'));
       expect(handleClick).not.toHaveBeenCalled();
     });

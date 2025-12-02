@@ -1,19 +1,19 @@
 import { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../lib/auth';
-import { 
-  getTasks, 
-  getTaskLists, 
-  createTask, 
-  updateTask, 
-  deleteTask 
+import {
+  getTasks,
+  getTaskLists,
+  createTask,
+  updateTask,
+  deleteTask,
 } from '../../../lib/google-tasks';
 
 // GET /api/google-tasks - Get all tasks from Google Tasks
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.accessToken) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     }
 
     const tasks = await getTasks(session.accessToken, taskListId, showCompleted);
-    
+
     return new Response(JSON.stringify({ tasks }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.accessToken) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     }
 
     const task = await createTask(
-      session.accessToken, 
+      session.accessToken,
       { title, notes, due },
       taskListId || '@default'
     );
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.accessToken) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
@@ -112,12 +112,7 @@ export async function PUT(request: NextRequest) {
       });
     }
 
-    const task = await updateTask(
-      session.accessToken,
-      taskId,
-      updates,
-      taskListId || '@default'
-    );
+    const task = await updateTask(session.accessToken, taskId, updates, taskListId || '@default');
 
     return new Response(JSON.stringify({ task }), {
       status: 200,
@@ -136,7 +131,7 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.accessToken) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,

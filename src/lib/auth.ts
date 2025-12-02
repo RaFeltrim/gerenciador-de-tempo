@@ -1,5 +1,5 @@
-import { NextAuthOptions } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
+import { NextAuthOptions } from 'next-auth';
+import GoogleProvider from 'next-auth/providers/google';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -8,9 +8,10 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       authorization: {
         params: {
-          scope: "openid email profile https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/tasks",
-          access_type: "offline",
-          prompt: "consent",
+          scope:
+            'openid email profile https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/tasks',
+          access_type: 'offline',
+          prompt: 'consent',
         },
       },
     }),
@@ -50,21 +51,21 @@ async function refreshAccessToken(token: any) {
     if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
       throw new Error('Missing Google OAuth credentials');
     }
-    
+
     const url =
-      "https://oauth2.googleapis.com/token?" +
+      'https://oauth2.googleapis.com/token?' +
       new URLSearchParams({
         client_id: process.env.GOOGLE_CLIENT_ID,
         client_secret: process.env.GOOGLE_CLIENT_SECRET,
-        grant_type: "refresh_token",
+        grant_type: 'refresh_token',
         refresh_token: token.refreshToken,
       });
 
     const response = await fetch(url, {
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
-      method: "POST",
+      method: 'POST',
     });
 
     const refreshedTokens = await response.json();
@@ -80,10 +81,10 @@ async function refreshAccessToken(token: any) {
       refreshToken: refreshedTokens.refresh_token ?? token.refreshToken, // Fall back to old refresh token
     };
   } catch (error) {
-    console.error("Error refreshing access token", error);
+    console.error('Error refreshing access token', error);
     return {
       ...token,
-      error: "RefreshAccessTokenError",
+      error: 'RefreshAccessTokenError',
     };
   }
 }

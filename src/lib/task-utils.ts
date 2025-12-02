@@ -9,7 +9,7 @@ export type RecurrencePattern = 'daily' | 'weekly' | 'monthly' | 'weekdays';
  * @returns The next due date as an ISO string, or null if pattern is invalid
  */
 export function calculateNextDueDate(
-  currentDueDate: string | null, 
+  currentDueDate: string | null,
   pattern: RecurrencePattern
 ): string | null {
   // If no current due date, start from the beginning of tomorrow

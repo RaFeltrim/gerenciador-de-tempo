@@ -6,9 +6,9 @@ interface PomodoroTimerProps {
   onTimerEnd?: () => void;
 }
 
-export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ 
+export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
   initialTime = 25 * 60,
-  onTimerEnd 
+  onTimerEnd,
 }) => {
   const [timeLeft, setTimeLeft] = useState(initialTime);
   const [isRunning, setIsRunning] = useState(false);
@@ -18,7 +18,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
 
     if (isRunning && timeLeft > 0) {
       interval = setInterval(() => {
-        setTimeLeft((prev) => {
+        setTimeLeft(prev => {
           if (prev <= 1) {
             setIsRunning(false);
             if (onTimerEnd) {
@@ -59,9 +59,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
 
   return (
     <div className="flex flex-col items-center p-8 bg-white/90 rounded-2xl shadow-lg border border-gray-100 backdrop-blur-sm">
-      <div className="text-4xl font-mono font-bold mb-8 text-gray-800">
-        {formatTime(timeLeft)}
-      </div>
+      <div className="text-4xl font-mono font-bold mb-8 text-gray-800">{formatTime(timeLeft)}</div>
       <div className="flex gap-4">
         {!isRunning ? (
           <button

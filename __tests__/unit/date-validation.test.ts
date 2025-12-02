@@ -29,19 +29,19 @@ describe('Date Validation Functions', () => {
 
   describe('isValidDate', () => {
     it('should return true for valid dates', () => {
-      expect(isValidDate(1, 1, 2025)).toBe(true);   // January 1st
-      expect(isValidDate(29, 2, 2024)).toBe(true);  // February 29th (leap year)
+      expect(isValidDate(1, 1, 2025)).toBe(true); // January 1st
+      expect(isValidDate(29, 2, 2024)).toBe(true); // February 29th (leap year)
       expect(isValidDate(31, 12, 2025)).toBe(true); // December 31st
     });
 
     it('should return false for invalid dates', () => {
       expect(isValidDate(31, 11, 2025)).toBe(false); // November has only 30 days
-      expect(isValidDate(29, 2, 2025)).toBe(false);  // 2025 is not a leap year
-      expect(isValidDate(32, 1, 2025)).toBe(false);  // No month has 32 days
-      expect(isValidDate(0, 1, 2025)).toBe(false);   // Day must be at least 1
-      expect(isValidDate(1, 0, 2025)).toBe(false);   // Month must be 1-12
-      expect(isValidDate(1, 13, 2025)).toBe(false);  // Month must be 1-12
-      expect(isValidDate(1, 1, -1)).toBe(false);     // Year must be positive
+      expect(isValidDate(29, 2, 2025)).toBe(false); // 2025 is not a leap year
+      expect(isValidDate(32, 1, 2025)).toBe(false); // No month has 32 days
+      expect(isValidDate(0, 1, 2025)).toBe(false); // Day must be at least 1
+      expect(isValidDate(1, 0, 2025)).toBe(false); // Month must be 1-12
+      expect(isValidDate(1, 13, 2025)).toBe(false); // Month must be 1-12
+      expect(isValidDate(1, 1, -1)).toBe(false); // Year must be positive
     });
 
     it('should return false for non-integer inputs', () => {

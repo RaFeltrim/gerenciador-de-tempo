@@ -3,7 +3,13 @@
  * Tests for strict date validation to catch invalid calendar dates
  */
 
-import { isValidDate, isLeapYear, getDaysInMonth, validateDateString, validateISODateString } from '../src/lib/date-validation';
+import {
+  isValidDate,
+  isLeapYear,
+  getDaysInMonth,
+  validateDateString,
+  validateISODateString,
+} from '../src/lib/date-validation';
 
 describe('isLeapYear', () => {
   it('should return true for leap years divisible by 4 but not 100', () => {
@@ -31,15 +37,15 @@ describe('isLeapYear', () => {
 
 describe('getDaysInMonth', () => {
   it('should return correct days for each month in a non-leap year', () => {
-    expect(getDaysInMonth(1, 2025)).toBe(31);  // January
-    expect(getDaysInMonth(2, 2025)).toBe(28);  // February (non-leap)
-    expect(getDaysInMonth(3, 2025)).toBe(31);  // March
-    expect(getDaysInMonth(4, 2025)).toBe(30);  // April
-    expect(getDaysInMonth(5, 2025)).toBe(31);  // May
-    expect(getDaysInMonth(6, 2025)).toBe(30);  // June
-    expect(getDaysInMonth(7, 2025)).toBe(31);  // July
-    expect(getDaysInMonth(8, 2025)).toBe(31);  // August
-    expect(getDaysInMonth(9, 2025)).toBe(30);  // September
+    expect(getDaysInMonth(1, 2025)).toBe(31); // January
+    expect(getDaysInMonth(2, 2025)).toBe(28); // February (non-leap)
+    expect(getDaysInMonth(3, 2025)).toBe(31); // March
+    expect(getDaysInMonth(4, 2025)).toBe(30); // April
+    expect(getDaysInMonth(5, 2025)).toBe(31); // May
+    expect(getDaysInMonth(6, 2025)).toBe(30); // June
+    expect(getDaysInMonth(7, 2025)).toBe(31); // July
+    expect(getDaysInMonth(8, 2025)).toBe(31); // August
+    expect(getDaysInMonth(9, 2025)).toBe(30); // September
     expect(getDaysInMonth(10, 2025)).toBe(31); // October
     expect(getDaysInMonth(11, 2025)).toBe(30); // November
     expect(getDaysInMonth(12, 2025)).toBe(31); // December
@@ -130,9 +136,9 @@ describe('isValidDate', () => {
     });
 
     it('should return false for day 31 in months with 30 days', () => {
-      expect(isValidDate(31, 4, 2025)).toBe(false);  // April
-      expect(isValidDate(31, 6, 2025)).toBe(false);  // June
-      expect(isValidDate(31, 9, 2025)).toBe(false);  // September
+      expect(isValidDate(31, 4, 2025)).toBe(false); // April
+      expect(isValidDate(31, 6, 2025)).toBe(false); // June
+      expect(isValidDate(31, 9, 2025)).toBe(false); // September
       expect(isValidDate(31, 11, 2025)).toBe(false); // November
     });
   });

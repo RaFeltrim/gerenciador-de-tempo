@@ -39,7 +39,7 @@ describe('Google Calendar Utilities', () => {
     it('should fetch events with timeMin set to current time', async () => {
       const { google } = require('googleapis');
       const mockCalendar = google.calendar();
-      
+
       const mockEvents = [
         {
           id: '1',
@@ -67,7 +67,7 @@ describe('Google Calendar Utilities', () => {
       const callArgs = mockCalendar.events.list.mock.calls[0][0];
       const timeMin = new Date(callArgs.timeMin);
       const now = new Date();
-      
+
       // timeMin should be very close to now (within 1 second)
       expect(Math.abs(timeMin.getTime() - now.getTime())).toBeLessThan(1000);
 

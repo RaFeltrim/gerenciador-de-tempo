@@ -1,9 +1,19 @@
 'use client';
 
-import { useSession, signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { Calendar, LogIn, CheckCircle, Clock, Target, Sparkles, Zap, Shield, ArrowRight } from "lucide-react";
+import { useSession, signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import {
+  Calendar,
+  LogIn,
+  CheckCircle,
+  Clock,
+  Target,
+  Sparkles,
+  Zap,
+  Shield,
+  ArrowRight,
+} from 'lucide-react';
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -42,15 +52,16 @@ export default function Home() {
               <Sparkles className="h-4 w-4 text-indigo-600" />
               <span className="text-sm font-medium text-gray-700">Organização Inteligente</span>
             </div>
-            
+
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
               Foque no que importa com <span className="gradient-text">FocusFlow</span>
             </h1>
-            
+
             <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-10">
-              Uma plataforma completa de gerenciamento de tempo que combina técnicas de produtividade com inteligência artificial para maximizar sua eficiência.
+              Uma plataforma completa de gerenciamento de tempo que combina técnicas de
+              produtividade com inteligência artificial para maximizar sua eficiência.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
               <button
                 onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
@@ -60,7 +71,7 @@ export default function Home() {
                 Entrar com Google
                 <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </button>
-              
+
               <button className="inline-flex items-center gap-2 px-8 py-4 bg-white/80 backdrop-blur-sm text-gray-700 rounded-2xl font-semibold text-lg border border-white shadow-sm hover:bg-white transition-all">
                 <Zap className="h-5 w-5 text-amber-500" />
                 Ver Demonstração
@@ -76,27 +87,30 @@ export default function Home() {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Agendamento Inteligente</h3>
               <p className="text-gray-600 text-sm">
-                Sincronize automaticamente suas tarefas com o Google Calendar e nunca mais esqueça um compromisso importante.
+                Sincronize automaticamente suas tarefas com o Google Calendar e nunca mais esqueça
+                um compromisso importante.
               </p>
             </div>
-            
+
             <div className="glass rounded-2xl p-6 card-hover">
               <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center mb-4">
                 <Clock className="h-6 w-6 text-white" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Pomodoro Timer</h3>
               <p className="text-gray-600 text-sm">
-                Técnica Pomodoro integrada para manter o foco e aumentar sua produtividade em até 40%.
+                Técnica Pomodoro integrada para manter o foco e aumentar sua produtividade em até
+                40%.
               </p>
             </div>
-            
+
             <div className="glass rounded-2xl p-6 card-hover">
               <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center mb-4">
                 <Target className="h-6 w-6 text-white" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Metas e Progresso</h3>
               <p className="text-gray-600 text-sm">
-                Acompanhe seu progresso diário, semanal e mensal com análises detalhadas do seu desempenho.
+                Acompanhe seu progresso diário, semanal e mensal com análises detalhadas do seu
+                desempenho.
               </p>
             </div>
           </div>
@@ -109,24 +123,31 @@ export default function Home() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Recursos Poderosos</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Tudo que você precisa para gerenciar seu tempo de forma eficiente e alcançar seus objetivos.
+              Tudo que você precisa para gerenciar seu tempo de forma eficiente e alcançar seus
+              objetivos.
             </p>
           </div>
-          
+
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <div className="inline-flex items-center gap-2 bg-indigo-50 px-3 py-1 rounded-full mb-4">
                 <Zap className="h-4 w-4 text-indigo-600" />
                 <span className="text-sm font-medium text-indigo-700">IA Integrada</span>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Extração Inteligente de Tarefas</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                Extração Inteligente de Tarefas
+              </h3>
               <p className="text-gray-600 mb-6">
-                Transforme linguagem natural em tarefas estruturadas. Digite &#34;Reunião com cliente amanhã às 14h, prioridade alta&#34; e nossa IA extrai automaticamente data, hora, duração e prioridade.
+                Transforme linguagem natural em tarefas estruturadas. Digite &#34;Reunião com
+                cliente amanhã às 14h, prioridade alta&#34; e nossa IA extrai automaticamente data,
+                hora, duração e prioridade.
               </p>
               <ul className="space-y-3">
                 <li className="flex items-center gap-3">
                   <CheckCircle className="h-5 w-5 text-emerald-500" />
-                  <span className="text-gray-700">Reconhecimento automático de datas e horários</span>
+                  <span className="text-gray-700">
+                    Reconhecimento automático de datas e horários
+                  </span>
                 </li>
                 <li className="flex items-center gap-3">
                   <CheckCircle className="h-5 w-5 text-emerald-500" />
@@ -173,7 +194,8 @@ export default function Home() {
             Pronto para transformar sua produtividade?
           </h2>
           <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-            Junte-se a milhares de usuários que já estão gerenciando seu tempo de forma mais eficiente com o FocusFlow.
+            Junte-se a milhares de usuários que já estão gerenciando seu tempo de forma mais
+            eficiente com o FocusFlow.
           </p>
           <button
             onClick={() => signIn('google', { callbackUrl: '/dashboard' })}

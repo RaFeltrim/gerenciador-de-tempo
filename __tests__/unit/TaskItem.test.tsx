@@ -23,10 +23,10 @@ jest.mock('../../src/lib/task-utils', () => ({
       daily: 'Diário',
       weekly: 'Semanal',
       monthly: 'Mensal',
-      weekdays: 'Dias úteis'
+      weekdays: 'Dias úteis',
     };
     return labels[pattern] || pattern;
-  }
+  },
 }));
 
 describe('TaskItem Component', () => {
@@ -153,7 +153,7 @@ describe('TaskItem Component', () => {
 
   it('should not show edit and timer buttons when task is completed', () => {
     const completedTask = { ...mockTask, completed: true };
-    
+
     render(
       <TaskItem
         task={completedTask}
@@ -165,14 +165,16 @@ describe('TaskItem Component', () => {
     );
 
     expect(screen.queryByRole('button', { name: /editar tarefa/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /iniciar pomodoro para esta tarefa/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /iniciar pomodoro para esta tarefa/i })
+    ).not.toBeInTheDocument();
     // Verifica se o botão de exclusão existe
     expect(screen.getByTitle('Excluir tarefa')).toBeInTheDocument();
   });
 
   it('should show check icon when task is completed', () => {
     const completedTask = { ...mockTask, completed: true };
-    
+
     render(
       <TaskItem
         task={completedTask}
