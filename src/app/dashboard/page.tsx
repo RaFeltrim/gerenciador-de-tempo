@@ -266,7 +266,7 @@ export default function Dashboard() {
       
       return () => clearTimeout(timer);
     }
-  }, [status, session, router]);
+  }, [status, session, router, fetchGoogleTasks, fetchCalendarEvents]);
 
   // Timer countdown
   useEffect(() => {
